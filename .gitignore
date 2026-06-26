@@ -5,17 +5,34 @@ node_modules/
 .next/
 out/
 
+# Production
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
 # Environment variables
 .env
 .env.local
 .env.development.local
 .env.production.local
+.env.test.local
 
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Vercel
+.vercel/
+
+# IDEs
+.vscode/
+.idea/
 
 # OS files
 .DS_Store
 Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
