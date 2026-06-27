@@ -57,11 +57,22 @@ export default function AdminPage() {
   }
 
   const fetchProducts = async () => {
-    const { data } = await supabase
-      .from('products').select('*')
-      .order('created_at', { ascending: false })
-    setProducts(data || [])
+  try {
+    const response = await fetch('/api/products')
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      showToast(result.error, 'error')
+      return
+    }
+
+    setProducts(result)
+
+  } catch (err) {
+    showToast(err.message, 'error')
   }
+}
 
   const fetchOrders = async () => {
   try {
@@ -348,20 +359,73 @@ if (!response.ok) {
                       </div>
                     </div>
                     {/* Actions */}
-                    <div style={{display:'flex',gap:6,flexShrink:0}}>
-                      <button onClick={()=>toggleActive(p.id,p.is_active)}
-                        style={{padding:'5px 10px',borderRadius:6,border:'none',background:p.is_active?'#dcfce7':'#fee2e2',color:p.is_active?'#166534':'#991b1b',cursor:'pointer',fontSize:11,fontWeight:700,fontFamily:'inherit'}}>
-                        {p.is_active ? 'Live' : 'Hidden'}
-                      </button>
-                      <button onClick={()=>startEdit(p)}
-                        style={{padding:'5px 12px',borderRadius:6,border:'1px solid #e0e3ea',background:'white',cursor:'pointer',fontSize:11,fontFamily:'inherit',fontWeight:600}}>
-                        Edit
-                      </button>
-                      <button onClick={()=>deleteProduct(p.id,p.name)}
-                        style={{padding:'5px 10px',borderRadius:6,border:'none',background:'#fee2e2',color:'#991b1b',cursor:'pointer',fontSize:11,fontFamily:'inherit',fontWeight:600}}>
-                        Delete
-                      </button>
-                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+
+  <span
+    style={{
+      padding:'5px 10px',
+      borderRadius:999,
+      background:p.is_active ? '#dcfce7' : '#fee2e2',
+      color:p.is_active ? '#166534' : '#991b1b',
+      fontSize:11,
+      fontWeight:700,
+      minWidth:62,
+      textAlign:'center'
+    }}
+  >
+    {p.is_active ? '🟢 Live' : '🔴 Hidden'}
+  </span>
+
+  <button
+    onClick={()=>toggleActive(p.id,p.is_active)}
+    style={{
+      padding:'5px 12px',
+      borderRadius:6,
+      border:'1px solid #e0e3ea',
+      background:'white',
+      cursor:'pointer',
+      fontSize:11,
+      fontWeight:600,
+      fontFamily:'inherit'
+    }}
+  >
+    {p.is_active ? 'Hide' : 'Make Live'}
+  </button>
+
+  <button
+    onClick={()=>startEdit(p)}
+    style={{
+      padding:'5px 12px',
+      borderRadius:6,
+      border:'1px solid #e0e3ea',
+      background:'white',
+      cursor:'pointer',
+      fontSize:11,
+      fontWeight:600,
+      fontFamily:'inherit'
+    }}
+  >
+    Edit
+  </button>
+
+  <button
+    onClick={()=>deleteProduct(p.id,p.name)}
+    style={{
+      padding:'5px 10px',
+      borderRadius:6,
+      border:'none',
+      background:'#fee2e2',
+      color:'#991b1b',
+      cursor:'pointer',
+      fontSize:11,
+      fontWeight:600,
+      fontFamily:'inherit'
+    }}
+  >
+    Delete
+  </button>
+
+</div>
                   </div>
                 ))}
                 {products.length === 0 && (
