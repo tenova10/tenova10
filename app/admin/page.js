@@ -7,6 +7,13 @@ import AdminStats from './components/AdminStats'
 import ProductForm from './components/ProductForm'
 import { EMPTY_FORM, EMOJI } from './constants/constants'
 import { fmt } from '@/lib/utils'
+import {
+  fetchProducts as getProducts,
+  toggleProduct,
+  deleteProduct as removeProduct,
+  createProduct,
+  updateProduct,
+} from './services/productService'
 
 const ORANGE = '#fd7e0d'
 const DARK   = '#0e1e32'
@@ -58,17 +65,8 @@ export default function AdminPage() {
 
   const fetchProducts = async () => {
   try {
-    const response = await fetch('/api/products')
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      showToast(result.error, 'error')
-      return
-    }
-
-    setProducts(result)
-
+    const products = await getProducts()
+    setProducts(products)
   } catch (err) {
     showToast(err.message, 'error')
   }
@@ -164,26 +162,20 @@ export default function AdminPage() {
       image_url:   imageUrl,
     }
 
-    const response = await fetch('/api/products', {
-  method: editId ? 'PUT' : 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(
-  editId
-    ? { ...payload, id: editId }
-    : payload
-  ),
-})
+    try {
+  if (editId) {
+    await updateProduct(editId, payload)
+    showToast('✅ Product updated!')
+  } else {
+    await createProduct(payload)
+    showToast('✅ Product added!')
+  }
 
-const result = await response.json()
-
-if (!response.ok) {
-  showToast('Save failed: ' + result.error, 'error')
-} else {
-  showToast(editId ? '✅ Product updated!' : '✅ Product added!')
   resetForm()
   fetchProducts()
+
+} catch (err) {
+  showToast('Save failed: ' + err.message, 'error')
 }
     setSaving(false)
   }
@@ -214,42 +206,21 @@ if (!response.ok) {
   const deleteProduct = async (id, name) => {
   if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
 
-  const response = await fetch('/api/products', {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ id }),
-  })
-
-  const result = await response.json()
-
-  if (!response.ok) {
-    showToast('Delete failed: ' + result.error, 'error')
-  } else {
-    showToast('Product deleted.')
+  try {
+    await removeProduct(id)
+    showToast('🗑️ Product deleted.')
     fetchProducts()
+  } catch (err) {
+    showToast('Delete failed: ' + err.message, 'error')
   }
 }
 
   const toggleActive = async (id, current) => {
-  const response = await fetch('/api/products', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      id,
-      is_active: !current,
-    }),
-  })
-
-  const result = await response.json()
-
-  if (!response.ok) {
-    showToast('Update failed: ' + result.error, 'error')
-  } else {
+  try {
+    await toggleProduct(id, current)
     fetchProducts()
+  } catch (err) {
+    showToast('Update failed: ' + err.message, 'error')
   }
 }
 
