@@ -6,10 +6,11 @@ import LoginForm from './components/LoginForm'
 import AdminStats from './components/AdminStats'
 import ProductForm from './components/ProductForm'
 import { EMPTY_FORM, EMOJI } from './constants/constants'
+import { fmt } from '@/lib/utils'
 
 const ORANGE = '#fd7e0d'
 const DARK   = '#0e1e32'
-const fmt    = p => `₦${Number(p).toLocaleString()}`
+
 
 
 export default function AdminPage() {
