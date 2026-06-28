@@ -13,3 +13,8 @@ export const EMOJI = {
   kitchen: '🍳',
   household: '🏠',
 }
+
+export const DARK = '#0e1e32'
+
+export const ORANGE = '#fd7e0d'
+

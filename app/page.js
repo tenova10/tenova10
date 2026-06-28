@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import CartUpdates from './components/CartUpdates'
 import { supabase } from '@/lib/supabase'
 import Script from 'next/script'
 import Image from 'next/image'
@@ -55,14 +56,51 @@ export default function ShopPage() {
   const [wishlist, setWishlist]     = useState(new Set())
   const [addedId, setAddedId]       = useState(null)
   const [toast, setToast]           = useState(null)
+  const [cartMessages, setCartMessages] = useState([])
 
   /* ── Restore cart from localStorage ─────────── */
-  useEffect(() => {
+  /* ── Restore and validate cart ─────────────── */
+useEffect(() => {
+  const restoreCart = async () => {
     try {
       const saved = localStorage.getItem('tenova10_cart')
-      if (saved) setCart(JSON.parse(saved))
-    } catch {}
-  }, [])
+
+      if (!saved) return
+
+      const storedCart = JSON.parse(saved)
+
+      const response = await fetch('/api/cart/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cart: storedCart,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error(result.error)
+        setCart(storedCart)
+        return
+      }
+
+      setCart(result.cart)
+      localStorage.setItem(
+        'tenova10_cart',
+        JSON.stringify(result.cart)
+      )
+      setCartMessages(result.messages)
+
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  restoreCart()
+}, [])
 
   /* ── Persist cart to localStorage ───────────── */
   useEffect(() => {
@@ -257,6 +295,7 @@ export default function ShopPage() {
 
       {/* ── CART PANEL ───────────────────────────── */}
       {cartOpen && (
+        
         <div style={{background: 'white', borderBottom: '1px solid #eef0f5'}}>
           <div style={{maxWidth: 1100, margin: '0 auto', padding: '18px 20px'}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
@@ -266,8 +305,14 @@ export default function ShopPage() {
               <button onClick={() => setCartOpen(false)} style={{background:'none',border:'none',cursor:'pointer',fontSize:22,color:'#8892a0',lineHeight:1}}>✕</button>
             </div>
 
+            <CartUpdates
+              messages={cartMessages}
+              onClose={() => setCartMessages([])}
+            />
+
             {cart.length === 0 ? (
-              <div style={{textAlign:'center',padding:'24px 0',color:'#8892a0'}}>
+              
+                <div style={{textAlign:'center',padding:'24px 0',color:'#8892a0'}}>
                 <div style={{fontSize:44,marginBottom:10}}>🛒</div>
                 <div style={{fontSize:14,fontWeight:500}}>Your cart is empty — add some items!</div>
               </div>
@@ -446,8 +491,10 @@ export default function ShopPage() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(215px,1fr))',gap:16}}>
             {filtered.map(p => {
               const isAdded = addedId === p.id
-              const isOos   = p.stock === 0
-              const isLow   = p.stock > 0 && p.stock <= 5
+              const availableStock = p.stock - (p.reserved_stock || 0)
+
+              const isOos = availableStock <= 0
+              const isLow = availableStock > 0 && availableStock <= 5
               return (
                 <div key={p.id} className="product-card">
                   {/* Image area */}
