@@ -1,47 +1,52 @@
 import { NextResponse } from 'next/server'
-import { createClient }  from '@supabase/supabase-js'
-
-// Use service role key so we can write orders server-side
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
+import { prepareCheckout } from '@/lib/orderService'
 
 export async function POST(request) {
   try {
     const { name, email, phone, address, cart, total } = await request.json()
 
-    // Validate required fields
     if (!name || !email || !phone || !cart?.length || !total) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
     }
 
-    // Generate unique Paystack reference
-    const reference = `T10-${Date.now()}-${Math.random().toString(36).substr(2, 8).toUpperCase()}`
+    const reference =
+  `T10-${Date.now()}-${Math.random()
+    .toString(36)
+    .substr(2, 8)
+    .toUpperCase()}`
 
-    // Create the order record in Supabase (status: pending until payment confirmed)
-    const { error: orderError } = await supabase.from('orders').insert({
-      reference,
-      customer_name:    name,
-      customer_email:   email,
-      customer_phone:   phone,
-      customer_address: address || '',
-      items:            cart,
-      subtotal:         total,
-      total:            total,
-      status:           'pending',
-    })
+const checkout = await prepareCheckout({
+  reference,
+  name,
+  email,
+  phone,
+  address,
+  cart,
+  total,
+})
 
-    if (orderError) {
-      console.error('Order creation failed:', orderError)
-      return NextResponse.json({ error: 'Could not create order' }, { status: 500 })
-    }
-
-    // Return the reference — frontend will use this with Paystack popup
-    return NextResponse.json({ reference })
+    return NextResponse.json({
+  reference: checkout.reference,
+  orderId: checkout.order.id,
+  cart: checkout.cart,
+  total: checkout.total,
+})
 
   } catch (err) {
-    console.error('Initialize error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error(err)
+
+    return NextResponse.json(
+      {
+        error: err.message || 'Unable to start checkout.',
+        messages: err.messages || [],
+        cart: err.cart || null,
+      },
+      {
+        status: 400
+      }
+    )
   }
 }

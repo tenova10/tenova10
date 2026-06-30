@@ -108,10 +108,12 @@ export default function AdminPage() {
         return;
     }
 
+    sessionStorage.setItem('tenova10_admin', 'true')
     setAuthed(true);
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' })
     sessionStorage.removeItem('tenova10_admin')
     setAuthed(false)
   }
@@ -325,7 +327,7 @@ export default function AdminPage() {
                           background: o.status==='paid'?'#dcfce7':o.status==='shipped'?'#dbeafe':o.status==='delivered'?'#f0fdf4':o.status==='cancelled'?'#fee2e2':'#fff3e6',
                           color: o.status==='paid'?'#166534':o.status==='shipped'?'#1e40af':o.status==='delivered'?'#14532d':o.status==='cancelled'?'#991b1b':'#c05000'
                         }}>
-                        {['pending','paid','shipped','delivered','cancelled'].map(s=>(
+                        {['pending','paid','shipped','delivered','cancelled','expired','payment_review'].map(s=>(
                           <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>
                         ))}
                       </select>
