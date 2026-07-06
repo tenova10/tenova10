@@ -154,14 +154,15 @@ export default function AdminPage() {
     }
 
     const payload = {
-      name:        form.name.trim(),
-      description: form.description.trim(),
-      price:       parseFloat(form.price),
-      old_price:   form.old_price ? parseFloat(form.old_price) : null,
-      category:    form.category,
-      stock:       parseInt(form.stock, 10),
-      image_url:   imageUrl,
-    }
+  name:        form.name.trim(),
+  description: form.description.trim(),
+  price:       parseFloat(form.price),
+  old_price:   form.old_price ? parseFloat(form.old_price) : null,
+  category:    form.category,
+  stock:       parseInt(form.stock, 10),
+  image_url:   imageUrl,
+  featured:    form.featured,
+}
 
     try {
   if (editId) {
@@ -191,14 +192,15 @@ export default function AdminPage() {
   const startEdit = (p) => {
     setEditId(p.id)
     setForm({
-      name:        p.name,
-      description: p.description || '',
-      price:       p.price.toString(),
-      old_price:   p.old_price?.toString() || '',
-      category:    p.category,
-      stock:       p.stock.toString(),
-      image_url:   p.image_url || '',
-    })
+  name:        p.name,
+  description: p.description || '',
+  price:       p.price.toString(),
+  old_price:   p.old_price?.toString() || '',
+  category:    p.category,
+  stock:       p.stock.toString(),
+  image_url:   p.image_url || '',
+  featured:    p.featured || false,
+})
     setImagePreview(p.image_url || null)
     setTab('products')
     window.scrollTo({ top: 0, behavior: 'smooth' })

@@ -7,12 +7,14 @@ function sanitizeProductPayload(payload) {
     name: payload.name?.trim(),
     description: payload.description?.trim() || '',
     price: Number(payload.price),
-    old_price: payload.old_price === null || payload.old_price === ''
-      ? null
-      : Number(payload.old_price),
+    old_price:
+      payload.old_price === null || payload.old_price === ''
+        ? null
+        : Number(payload.old_price),
     category: payload.category,
     stock: Number.parseInt(payload.stock, 10),
     image_url: payload.image_url || '',
+    featured: Boolean(payload.featured),
   }
 }
 

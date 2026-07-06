@@ -1,4 +1,9 @@
 import './globals.css'
+import Script from 'next/script'
+import { CartProvider } from './context/CartContext'
+import Navbar from './components/Navbar'
+import CartDrawer from './components/CartDrawer'
+import CheckoutModal from './components/CheckoutModal'
 
 export const metadata = {
   title: 'tenova10 — Shop 10/10 Products',
@@ -14,7 +19,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <CartProvider>
+          <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
+          <Navbar />
+          {children}
+          <CartDrawer />
+          <CheckoutModal />
+        </CartProvider>
+      </body>
     </html>
   )
 }

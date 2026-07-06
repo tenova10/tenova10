@@ -84,6 +84,33 @@ export default function ProductForm({
                     placeholder="Short product description..."/>
                 </div>
 
+                {/* Featured */}
+                <div style={{marginBottom:20}}>
+  <label
+    style={{
+      display:'flex',
+      alignItems:'center',
+      gap:10,
+      cursor:'pointer',
+      fontSize:14,
+      fontWeight:600,
+      color:DARK
+    }}
+  >
+    <input
+      type="checkbox"
+      checked={form.featured || false}
+      onChange={e =>
+        setForm(f => ({
+          ...f,
+          featured: e.target.checked
+        }))
+      }
+    />
+    ⭐ Feature this product on the homepage
+  </label>
+</div>
+
                 {/* Image Upload */}
                 <div style={{marginBottom:20}}>
                   <label style={labelStyle}>Product Image</label>
