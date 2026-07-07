@@ -349,6 +349,7 @@ export default function AdminPage() {
               form={form}
               setForm={setForm}
               categories={categories}
+              showToast={showToast}
               fileRef={fileRef}
               handleFileChange={handleFileChange}
               imagePreview={imagePreview}

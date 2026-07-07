@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useCart } from '../../context/CartContext'
 import ProductCard from '../../components/ProductCard'
-import { ORANGE, DARK, EMOJI, fmt } from '@/lib/constants'
+import { ORANGE, DARK, fmt } from '@/lib/constants'
 
 export default function ProductPage() {
   const { id } = useParams()
@@ -15,11 +15,14 @@ export default function ProductPage() {
   const {
     wishlist, toggleWish,
     addedId, addToCart,
-    getAvailableStock, categoriesById,
+    getAvailableStock,
+    categoriesById,
   } = useCart()
 
   const [product, setProduct] = useState(null)
   const [similar, setSimilar] = useState([])
+  const [galleryImages, setGalleryImages] = useState([])
+  const [activeImage, setActiveImage] = useState(null)
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
 
@@ -42,6 +45,7 @@ export default function ProductPage() {
       }
 
       setProduct(data)
+      setActiveImage(data.image_url || null)
 
       const { data: related } = await supabase
         .from('products')
@@ -52,14 +56,22 @@ export default function ProductPage() {
         .limit(4)
 
       setSimilar(related || [])
+
+      const { data: images } = await supabase
+        .from('product_images')
+        .select('*')
+        .eq('product_id', data.id)
+        .order('sort_order', { ascending: true })
+
+      setGalleryImages(images || [])
+
       setLoading(false)
     }
 
     loadProduct()
   }, [id])
 
-  /* ── Realtime stock for this specific product (so the detail view
-     stays in sync even without a full page reload) ── */
+  /* ── Realtime stock for this specific product ── */
   useEffect(() => {
     if (!id) return
 
@@ -106,6 +118,13 @@ export default function ProductPage() {
   const isOos = availableStock <= 0
   const isLow = availableStock > 0 && availableStock <= 5
   const isWished = wishlist.has(product.id)
+  const categoryEmoji = categoriesById[product.category]?.emoji || '📦'
+
+  /* Cover image + gallery images combined, cover first, no duplicates */
+  const allImages = [
+    ...(product.image_url ? [product.image_url] : []),
+    ...galleryImages.map(g => g.image_url).filter(url => url !== product.image_url),
+  ]
 
   const handleAddToCart = () => {
     if (isOos) return
@@ -125,32 +144,58 @@ export default function ProductPage() {
       </button>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 50 }}>
-        {/* Image */}
-        <div style={{ position: 'relative', background: '#f5f5f5', borderRadius: 20, overflow: 'hidden', minHeight: 500, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            <div style={{ fontSize: 120 }}>{categoriesById[product.category]?.emoji || '📦'}</div>
-          )}
+        {/* Image + gallery */}
+        <div>
+          <div style={{ position: 'relative', background: '#f5f5f5', borderRadius: 20, overflow: 'hidden', minHeight: 500, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            {activeImage ? (
+              <img
+                src={activeImage}
+                alt={product.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ fontSize: 120 }}>{categoryEmoji}</div>
+            )}
 
-          <button
-            className="wish-btn"
-            style={{ width: 44, height: 44, fontSize: 20 }}
-            onClick={() => toggleWish(product.id)}
-            aria-label="Toggle wishlist"
-          >
-            {isWished ? '❤️' : '🤍'}
-          </button>
+            <button
+              className="wish-btn"
+              style={{ width: 44, height: 44, fontSize: 20 }}
+              onClick={() => toggleWish(product.id)}
+              aria-label="Toggle wishlist"
+            >
+              {isWished ? '❤️' : '🤍'}
+            </button>
 
-          {product.old_price && <span className="sale-badge" style={{ fontSize: 13, padding: '5px 12px' }}>SALE</span>}
+            {product.old_price && <span className="sale-badge" style={{ fontSize: 13, padding: '5px 12px' }}>SALE</span>}
 
-          {isOos && (
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ background: DARK, color: 'white', padding: '8px 18px', borderRadius: 10, fontSize: 15, fontWeight: 600 }}>Out of Stock</span>
+            {isOos && (
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ background: DARK, color: 'white', padding: '8px 18px', borderRadius: 10, fontSize: 15, fontWeight: 600 }}>Out of Stock</span>
+              </div>
+            )}
+          </div>
+
+          {allImages.length > 1 && (
+            <div style={{ display: 'flex', gap: 10, marginTop: 14, overflowX: 'auto', paddingBottom: 4 }}>
+              {allImages.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImage(url)}
+                  style={{
+                    flexShrink: 0,
+                    width: 72,
+                    height: 72,
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    border: activeImage === url ? `2px solid ${ORANGE}` : '2px solid transparent',
+                    padding: 0,
+                    cursor: 'pointer',
+                    background: '#f0f2f6',
+                  }}
+                >
+                  <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -158,7 +203,7 @@ export default function ProductPage() {
         {/* Details */}
         <div>
           <div style={{ color: ORANGE, fontWeight: 700, marginBottom: 10 }}>
-            {product.category === 'kitchen' ? 'KITCHENWARE' : product.category === 'fashion' ? 'FASHION' : 'HOUSEHOLD'}
+            {categoriesById[product.category]?.label?.toUpperCase() || product.category.toUpperCase()}
           </div>
 
           <h1 style={{ color: DARK, fontSize: 38, marginBottom: 15 }}>
@@ -197,7 +242,6 @@ export default function ProductPage() {
             {isOos ? 'Out of Stock' : `Stock Available: ${availableStock}`}
           </div>
 
-          {/* Quantity selector */}
           {!isOos && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: DARK }}>Quantity</span>
@@ -232,7 +276,6 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* Similar Products */}
       {similar.length > 0 && (
         <div style={{ marginTop: 80 }}>
           <h2 style={{ color: DARK, marginBottom: 25 }}>Similar Products</h2>

@@ -11,12 +11,15 @@ const labelStyle = {
   color: DARK,
 }
 
+import ProductImageGallery from './ProductImageGallery'
+
 export default function ProductForm({
   editId,
   handleSubmit,
   form,
   setForm,
   categories,
+  showToast,
   fileRef,
   handleFileChange,
   imagePreview,
@@ -115,7 +118,7 @@ export default function ProductForm({
 
                 {/* Image Upload */}
                 <div style={{marginBottom:20}}>
-                  <label style={labelStyle}>Product Image</label>
+                  <label style={labelStyle}>🖼️ Cover Image <span style={{color:'#8892a0',fontWeight:400}}>(shown on product cards & in cart)</span></label>
                   <input type="file" ref={fileRef} accept="image/*" onChange={handleFileChange} style={{display:'none'}}/>
                   <button type="button" onClick={()=>fileRef.current.click()}
                     style={{width:'100%',border:'1.5px dashed #d0d3db',borderRadius:10,padding:'14px',background:'#f7f8fc',cursor:'pointer',fontSize:13,color:'#8892a0',fontFamily:'inherit',textAlign:'center'}}>
@@ -144,6 +147,8 @@ export default function ProductForm({
                   )}
                 </div>
               </form>
+
+              {editId && <ProductImageGallery productId={editId} showToast={showToast} />}
             </div>
         )
 }
