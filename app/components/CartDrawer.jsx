@@ -11,7 +11,7 @@ export default function CartDrawer() {
     cartCount, cartTotal,
     cartMessages, setCartMessages,
     updateQty,
-    setCheckoutOpen,
+    setCheckoutOpen, categoriesById,
   } = useCart()
 
   if (!cartOpen) return null
@@ -54,7 +54,7 @@ export default function CartDrawer() {
                 <div style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: '#eef0f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30 }}>
                   {item.image_url
                     ? <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : EMOJI[item.category]}
+                    : categoriesById[item.category]?.emoji || '📦'}
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>

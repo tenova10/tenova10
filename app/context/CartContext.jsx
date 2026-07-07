@@ -33,6 +33,7 @@ export function CartProvider({ children }) {
   const [toast, setToast]               = useState(null)
   const [cartMessages, setCartMessages] = useState([])
   const [stockById, setStockById]       = useState({})
+  const [categoriesById, setCategoriesById] = useState({})
 
   /* ── Search (shared so Navbar can host the input on every page) ── */
   const [searchQ, setSearchQ] = useState('')
@@ -145,6 +146,24 @@ export function CartProvider({ children }) {
       .subscribe()
 
     return () => supabase.removeChannel(channel)
+  }, [])
+
+  /* ── Categories (for emoji/label lookups app-wide) ── */
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const res = await fetch('/api/categories')
+        const data = await res.json()
+        if (res.ok) {
+          const map = {}
+          data.forEach(c => { map[c.id] = c })
+          setCategoriesById(map)
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    loadCategories()
   }, [])
 
   const getAvailableStock = useCallback((product) => {
@@ -354,6 +373,7 @@ export function CartProvider({ children }) {
     cartCount, cartTotal,
     getAvailableStock,
     validateCurrentCart,
+    categoriesById,
 
     // search
     searchQ, setSearchQ,

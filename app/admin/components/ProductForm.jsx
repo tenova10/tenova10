@@ -16,6 +16,7 @@ export default function ProductForm({
   handleSubmit,
   form,
   setForm,
+  categories,
   fileRef,
   handleFileChange,
   imagePreview,
@@ -42,13 +43,14 @@ export default function ProductForm({
                 </div>
 
                 {/* Category */}
+
                 <div style={{marginBottom:14}}>
                   <label style={labelStyle}>Category *</label>
                   <select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value}))}
                     style={{width:'100%',border:'1px solid #e0e3ea',borderRadius:10,padding:'10px 14px',fontSize:14,fontFamily:'inherit',background:'white',color:DARK}}>
-                    <option value="fashion">👗 Fashion</option>
-                    <option value="kitchen">🍳 Kitchenware</option>
-                    <option value="household">🏠 Household</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
+                    ))}
                   </select>
                 </div>
 

@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm'
 import AdminStats from './components/AdminStats'
 import ProductForm from './components/ProductForm'
 import ProductList from './components/ProductList'
+import CategoryManager from './components/CategoryManager'
 import { EMPTY_FORM, EMOJI } from './utils/constants'
 import { fmt } from '@/lib/utils'
 import {
@@ -23,13 +24,12 @@ import {
 const ORANGE = '#fd7e0d'
 const DARK   = '#0e1e32'
 
-
-
 export default function AdminPage() {
   const [authed, setAuthed]         = useState(false)
   const [password, setPassword]     = useState('')
   const [products, setProducts]     = useState([])
   const [orders, setOrders]         = useState([])
+  const [categories, setCategories] = useState([])
   const [tab, setTab]               = useState('products')
   const [form, setForm]             = useState(EMPTY_FORM)
   const [editId, setEditId]         = useState(null)
@@ -50,6 +50,58 @@ export default function AdminPage() {
     if (!authed) return
     fetchProducts()
     fetchOrders()
+    fetchCategories()
+  }, [authed])
+
+  /* ── Realtime: orders (new orders + status changes from elsewhere) ── */
+  useEffect(() => {
+    if (!authed) return
+
+    const channel = supabase
+      .channel('admin-orders-live')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'orders',
+      }, payload => {
+        setOrders(prev => [payload.new, ...prev])
+        showToast(`🔔 New order from ${payload.new.customer_name}!`)
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+      }, payload => {
+        setOrders(prev => prev.map(o => o.id === payload.new.id ? payload.new : o))
+      })
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [authed])
+
+  /* ── Realtime: product stock (reservations/purchases happening live) ── */
+  useEffect(() => {
+    if (!authed) return
+
+    const channel = supabase
+      .channel('admin-products-live')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'products',
+      }, payload => {
+        setProducts(prev => prev.map(p => p.id === payload.new.id ? { ...p, ...payload.new } : p))
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'products',
+      }, payload => {
+        setProducts(prev => [payload.new, ...prev])
+      })
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
   }, [authed])
 
   /* ── Stats ────────────────────────────────────── */
@@ -88,6 +140,17 @@ export default function AdminPage() {
     showToast(err.message, 'error')
   }
 }
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/admin/categories')
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error)
+      setCategories(result)
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+  }
 
   const login = async (e) => {
     e.preventDefault()
@@ -285,6 +348,7 @@ export default function AdminPage() {
               handleSubmit={handleSubmit}
               form={form}
               setForm={setForm}
+              categories={categories}
               fileRef={fileRef}
               handleFileChange={handleFileChange}
               imagePreview={imagePreview}
@@ -304,6 +368,15 @@ export default function AdminPage() {
               deleteProduct={deleteProduct}
             />
           </div>
+        )}
+
+        {/* ── CATEGORIES TAB ──────────────────── */}
+        {tab === 'categories' && (
+          <CategoryManager
+            categories={categories}
+            refreshCategories={fetchCategories}
+            showToast={showToast}
+          />
         )}
 
         {/* ── ORDERS TAB ──────────────────────── */}

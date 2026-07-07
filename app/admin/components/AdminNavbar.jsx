@@ -49,7 +49,7 @@ export default function AdminNavbar({
             alignItems: 'center',
           }}
         >
-          {['products', 'orders'].map((t) => (
+          {['products', 'categories', 'orders'].map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}

@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext'
 import { ORANGE, DARK, EMOJI, fmt } from '@/lib/constants'
 
 export default function ProductCard({ product: p }) {
-  const { wishlist, toggleWish, addedId, addToCart, getAvailableStock } = useCart()
+  const { wishlist, toggleWish, addedId, addToCart, getAvailableStock, categoriesById } = useCart()
 
   const isAdded = addedId === p.id
   const availableStock = getAvailableStock(p)
@@ -30,7 +30,7 @@ export default function ProductCard({ product: p }) {
           />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 70 }}>
-            {EMOJI[p.category]}
+            {categoriesById[p.category]?.emoji || '📦'}
           </div>
         )}
 

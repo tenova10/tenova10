@@ -18,9 +18,16 @@ function sanitizeProductPayload(payload) {
   }
 }
 
-function validateProductPayload(payload) {
+async function validateProductPayload(payload) {
   if (!payload.name) return 'Product name is required.'
-  if (!['fashion', 'kitchen', 'household'].includes(payload.category)) return 'Invalid category.'
+
+  const { data: category } = await supabaseAdmin
+    .from('categories')
+    .select('id')
+    .eq('id', payload.category)
+    .maybeSingle()
+  if (!category) return 'Invalid category.'
+
   if (!Number.isFinite(payload.price) || payload.price < 0) return 'Invalid price.'
   if (payload.old_price !== null && (!Number.isFinite(payload.old_price) || payload.old_price < 0)) return 'Invalid old price.'
   if (!Number.isInteger(payload.stock) || payload.stock < 0) return 'Invalid stock quantity.'
@@ -32,7 +39,7 @@ export async function POST(request) {
     if (!isAdminRequest(request)) return unauthorizedResponse()
 
     const payload = sanitizeProductPayload(await request.json())
-    const validationError = validateProductPayload(payload)
+    const validationError = await validateProductPayload(payload)
 
     if (validationError) {
       return NextResponse.json({ error: validationError }, { status: 400 })
@@ -68,7 +75,7 @@ export async function PUT(request) {
 
     const { id } = body
     const payload = sanitizeProductPayload(body)
-    const validationError = validateProductPayload(payload)
+    const validationError = await validateProductPayload(payload)
 
     if (!id) {
       return NextResponse.json({ error: 'Product id is required.' }, { status: 400 })

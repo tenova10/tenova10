@@ -15,7 +15,7 @@ export default function ProductPage() {
   const {
     wishlist, toggleWish,
     addedId, addToCart,
-    getAvailableStock,
+    getAvailableStock, categoriesById,
   } = useCart()
 
   const [product, setProduct] = useState(null)
@@ -134,7 +134,7 @@ export default function ProductPage() {
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           ) : (
-            <div style={{ fontSize: 120 }}>{EMOJI[product.category]}</div>
+            <div style={{ fontSize: 120 }}>{categoriesById[product.category]?.emoji || '📦'}</div>
           )}
 
           <button
