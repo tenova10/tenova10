@@ -33,6 +33,7 @@ export function CartProvider({ children }) {
   const [toast, setToast]               = useState(null)
   const [cartMessages, setCartMessages] = useState([])
   const [stockById, setStockById]       = useState({})
+  const [variantStockById, setVariantStockById] = useState({})
   const [categoriesById, setCategoriesById] = useState({})
 
   /* ── Search (shared so Navbar can host the input on every page) ── */
@@ -148,6 +149,38 @@ export function CartProvider({ children }) {
     return () => supabase.removeChannel(channel)
   }, [])
 
+  /* ── Live variant stock (same pattern as product stock above) ── */
+  useEffect(() => {
+    const loadVariantStock = async () => {
+      const { data, error } = await supabase
+        .from('product_variants')
+        .select('id, stock, reserved_stock')
+
+      if (!error && data) {
+        const map = {}
+        data.forEach(v => { map[v.id] = { stock: v.stock, reserved_stock: v.reserved_stock } })
+        setVariantStockById(map)
+      }
+    }
+    loadVariantStock()
+
+    const channel = supabase
+      .channel('cart-variant-stock-live')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'product_variants',
+      }, payload => {
+        setVariantStockById(prev => ({
+          ...prev,
+          [payload.new.id]: { stock: payload.new.stock, reserved_stock: payload.new.reserved_stock },
+        }))
+      })
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [])
+
   /* ── Categories (for emoji/label lookups app-wide) ── */
   useEffect(() => {
     const loadCategories = async () => {
@@ -166,40 +199,64 @@ export function CartProvider({ children }) {
     loadCategories()
   }, [])
 
-  const getAvailableStock = useCallback((product) => {
+  /* ── Stock lookup: pass a variant to check variant-level stock,
+     otherwise falls back to the product's flat stock. ── */
+  const getAvailableStock = useCallback((product, variant = null) => {
+    if (variant) {
+      const live = variantStockById[variant.id]
+      const stock    = live ? live.stock          : variant.stock
+      const reserved = live ? live.reserved_stock : (variant.reserved_stock || 0)
+      return Number(stock || 0) - Number(reserved || 0)
+    }
     const live = stockById[product.id]
     const stock    = live ? live.stock          : product.stock
     const reserved = live ? live.reserved_stock : (product.reserved_stock || 0)
     return Number(stock || 0) - Number(reserved || 0)
-  }, [stockById])
+  }, [stockById, variantStockById])
 
   /* ── Cart actions ── */
-  const addToCart = useCallback((product) => {
-    const availableStock = getAvailableStock(product)
+  const addToCart = useCallback((product, variant = null) => {
+    const availableStock = getAvailableStock(product, variant)
     if (availableStock <= 0) return
 
+    const lineKey = variant ? `${product.id}::${variant.id}` : product.id
+
     setCart(prev => {
-      const ex = prev.find(i => i.id === product.id)
+      const ex = prev.find(i => (i.variant_id ? `${i.id}::${i.variant_id}` : i.id) === lineKey)
       if (ex) {
         if (ex.qty >= availableStock) {
           showToast(`Only ${availableStock} available!`)
           return prev
         }
-        return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i)
+        return prev.map(i =>
+          (i.variant_id ? `${i.id}::${i.variant_id}` : i.id) === lineKey ? { ...i, qty: i.qty + 1 } : i
+        )
       }
-      return [...prev, { ...product, qty: 1 }]
+      return [
+        ...prev,
+        {
+          ...product,
+          qty: 1,
+          ...(variant ? { variant_id: variant.id, variant_label: variant.label } : {}),
+        },
+      ]
     })
-    setAddedId(product.id)
+    setAddedId(variant ? `${product.id}::${variant.id}` : product.id)
     setTimeout(() => setAddedId(null), 950)
   }, [getAvailableStock, showToast])
 
-  const updateQty = useCallback((id, delta) => {
+  const updateQty = useCallback((id, delta, variantId = null) => {
     setCart(prev => prev.map(i => {
-      if (i.id !== id) return i
+      const matches = variantId ? (i.id === id && i.variant_id === variantId) : (i.id === id && !i.variant_id)
+      if (!matches) return i
+
       const newQty = i.qty + delta
       if (newQty <= 0) return null
 
-      const availableStock = getAvailableStock(i)
+      const availableStock = variantId
+        ? getAvailableStock(i, { id: variantId, stock: 0, reserved_stock: 0 })
+        : getAvailableStock(i)
+
       if (newQty > availableStock) {
         showToast(`Only ${availableStock} available!`)
         return i
@@ -208,8 +265,10 @@ export function CartProvider({ children }) {
     }).filter(Boolean))
   }, [getAvailableStock, showToast])
 
-  const removeFromCart = useCallback((id) => {
-    setCart(prev => prev.filter(i => i.id !== id))
+  const removeFromCart = useCallback((id, variantId = null) => {
+    setCart(prev => prev.filter(i =>
+      variantId ? !(i.id === id && i.variant_id === variantId) : !(i.id === id && !i.variant_id)
+    ))
   }, [])
 
   const toggleWish = useCallback((id) => {
@@ -373,6 +432,9 @@ export function CartProvider({ children }) {
     cartCount, cartTotal,
     getAvailableStock,
     validateCurrentCart,
+    variantStockById,
+
+    // categories
     categoriesById,
 
     // search

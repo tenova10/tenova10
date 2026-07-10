@@ -12,6 +12,7 @@ const labelStyle = {
 }
 
 import ProductImageGallery from './ProductImageGallery'
+import ProductVariantManager from './ProductVariantManager'
 
 export default function ProductForm({
   editId,
@@ -149,6 +150,7 @@ export default function ProductForm({
               </form>
 
               {editId && <ProductImageGallery productId={editId} showToast={showToast} />}
+              {editId && <ProductVariantManager productId={editId} showToast={showToast} />}
             </div>
         )
 }

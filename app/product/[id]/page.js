@@ -23,6 +23,8 @@ export default function ProductPage() {
   const [similar, setSimilar] = useState([])
   const [galleryImages, setGalleryImages] = useState([])
   const [activeImage, setActiveImage] = useState(null)
+  const [variants, setVariants] = useState([])
+  const [selectedVariantId, setSelectedVariantId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [qty, setQty] = useState(1)
 
@@ -30,6 +32,7 @@ export default function ProductPage() {
     async function loadProduct() {
       setLoading(true)
       setQty(1)
+      setSelectedVariantId(null)
 
       const { data, error } = await supabase
         .from('products')
@@ -65,6 +68,18 @@ export default function ProductPage() {
 
       setGalleryImages(images || [])
 
+      if (data.has_variants) {
+        const { data: variantRows } = await supabase
+          .from('product_variants')
+          .select('*')
+          .eq('product_id', data.id)
+          .order('sort_order', { ascending: true })
+
+        setVariants(variantRows || [])
+      } else {
+        setVariants([])
+      }
+
       setLoading(false)
     }
 
@@ -90,6 +105,25 @@ export default function ProductPage() {
     return () => supabase.removeChannel(channel)
   }, [id])
 
+  /* ── Realtime stock for this product's variants ── */
+  useEffect(() => {
+    if (!id || !product?.has_variants) return
+
+    const channel = supabase
+      .channel(`product-variants-detail-${id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'product_variants',
+        filter: `product_id=eq.${id}`,
+      }, payload => {
+        setVariants(prev => prev.map(v => v.id === payload.new.id ? { ...v, ...payload.new } : v))
+      })
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [id, product?.has_variants])
+
   if (loading) {
     return (
       <div style={{ padding: 80, textAlign: 'center', fontSize: 18 }}>
@@ -113,23 +147,27 @@ export default function ProductPage() {
     )
   }
 
-  const isAdded = addedId === product.id
-  const availableStock = getAvailableStock(product)
-  const isOos = availableStock <= 0
-  const isLow = availableStock > 0 && availableStock <= 5
+  const selectedVariant = variants.find(v => v.id === selectedVariantId) || null
+  const isAdded = product.has_variants
+    ? (selectedVariant && addedId === `${product.id}::${selectedVariant.id}`)
+    : addedId === product.id
+
+  const availableStock = getAvailableStock(product, selectedVariant)
+  const needsVariantSelection = product.has_variants && !selectedVariant
+  const isOos = !needsVariantSelection && availableStock <= 0
+  const isLow = !needsVariantSelection && availableStock > 0 && availableStock <= 5
   const isWished = wishlist.has(product.id)
   const categoryEmoji = categoriesById[product.category]?.emoji || '📦'
 
-  /* Cover image + gallery images combined, cover first, no duplicates */
   const allImages = [
     ...(product.image_url ? [product.image_url] : []),
     ...galleryImages.map(g => g.image_url).filter(url => url !== product.image_url),
   ]
 
   const handleAddToCart = () => {
-    if (isOos) return
+    if (needsVariantSelection || isOos) return
     for (let i = 0; i < qty; i++) {
-      addToCart(product)
+      addToCart(product, selectedVariant)
     }
     setQty(1)
   }
@@ -232,6 +270,43 @@ export default function ProductPage() {
             {product.description}
           </div>
 
+          {/* ── Variant picker ── */}
+          {product.has_variants && (
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: DARK, marginBottom: 10 }}>
+                Select an option {!selectedVariant && <span style={{ color: ORANGE }}>*</span>}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {variants.map(v => {
+                  const vAvailable = getAvailableStock(product, v)
+                  const vOos = vAvailable <= 0
+                  const isSelected = selectedVariantId === v.id
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => { if (!vOos) { setSelectedVariantId(v.id); setQty(1) } }}
+                      disabled={vOos}
+                      style={{
+                        padding: '9px 16px',
+                        borderRadius: 10,
+                        border: `1.5px solid ${isSelected ? ORANGE : vOos ? '#e5e7eb' : '#e0e3ea'}`,
+                        background: isSelected ? ORANGE : vOos ? '#f5f5f5' : 'white',
+                        color: isSelected ? 'white' : vOos ? '#aab0bc' : DARK,
+                        fontWeight: 600,
+                        fontSize: 13,
+                        cursor: vOos ? 'not-allowed' : 'pointer',
+                        fontFamily: 'inherit',
+                        textDecoration: vOos ? 'line-through' : 'none',
+                      }}
+                    >
+                      {v.label}{vOos ? ' (Out of Stock)' : ''}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {isLow && (
             <div style={{ display: 'inline-block', background: '#fff3e6', border: '0.5px solid #ffd0a0', borderRadius: 6, padding: '4px 11px', fontSize: 12, color: '#c05000', fontWeight: 600, marginBottom: 16 }}>
               🔥 Only {availableStock} left!
@@ -239,10 +314,14 @@ export default function ProductPage() {
           )}
 
           <div style={{ marginBottom: 25, fontWeight: 700 }}>
-            {isOos ? 'Out of Stock' : `Stock Available: ${availableStock}`}
+            {needsVariantSelection
+              ? 'Select an option to see availability'
+              : isOos
+              ? 'Out of Stock'
+              : `Stock Available: ${availableStock}`}
           </div>
 
-          {!isOos && (
+          {!needsVariantSelection && !isOos && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: DARK }}>Quantity</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -266,12 +345,18 @@ export default function ProductPage() {
           )}
 
           <button
-            className={`add-btn ${isAdded ? 'added' : ''} ${isOos ? 'oos' : ''}`}
+            className={`add-btn ${isAdded ? 'added' : ''} ${(isOos || needsVariantSelection) ? 'oos' : ''}`}
             style={{ padding: '16px 28px', fontSize: 16, width: 'auto', minWidth: 220 }}
             onClick={handleAddToCart}
-            disabled={isOos}
+            disabled={isOos || needsVariantSelection}
           >
-            {isAdded ? '✓ Added to Cart!' : isOos ? 'Out of Stock' : '🛒 Add to Cart'}
+            {isAdded
+              ? '✓ Added to Cart!'
+              : needsVariantSelection
+              ? 'Select an Option'
+              : isOos
+              ? 'Out of Stock'
+              : '🛒 Add to Cart'}
           </button>
         </div>
       </div>

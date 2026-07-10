@@ -29,7 +29,13 @@ export async function initializeCheckout({ form, cart, total }) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...form,
-      cart: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      cart: cart.map(i => ({
+        id: i.id,
+        name: i.name,
+        price: i.price,
+        qty: i.qty,
+        ...(i.variant_id ? { variant_id: i.variant_id, variant_label: i.variant_label } : {}),
+      })),
       total,
     }),
   })

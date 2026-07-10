@@ -2,15 +2,16 @@
 
 import Link from 'next/link'
 import { useCart } from '../context/CartContext'
-import { ORANGE, DARK, EMOJI, fmt } from '@/lib/constants'
+import { ORANGE, DARK, fmt } from '@/lib/constants'
 
 export default function ProductCard({ product: p }) {
   const { wishlist, toggleWish, addedId, addToCart, getAvailableStock, categoriesById } = useCart()
 
   const isAdded = addedId === p.id
   const availableStock = getAvailableStock(p)
-  const isOos = availableStock <= 0
-  const isLow = availableStock > 0 && availableStock <= 5
+  const isOos = !p.has_variants && availableStock <= 0
+  const isLow = !p.has_variants && availableStock > 0 && availableStock <= 5
+  const categoryEmoji = categoriesById[p.category]?.emoji || '📦'
 
   return (
     <div className="product-card" style={{ position: 'relative' }}>
@@ -30,7 +31,7 @@ export default function ProductCard({ product: p }) {
           />
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 70 }}>
-            {categoriesById[p.category]?.emoji || '📦'}
+            {categoryEmoji}
           </div>
         )}
 
@@ -53,7 +54,7 @@ export default function ProductCard({ product: p }) {
 
       <div style={{ padding: '13px 15px 15px' }}>
         <div style={{ fontSize: 10, color: ORANGE, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 3 }}>
-          {p.category === 'kitchen' ? 'Kitchenware' : p.category === 'fashion' ? 'Fashion' : 'Household'}
+          {categoriesById[p.category]?.label || p.category}
         </div>
         <div style={{ fontWeight: 600, fontSize: 14, color: DARK, lineHeight: 1.35, marginBottom: 7 }}>{p.name}</div>
 
@@ -70,23 +71,39 @@ export default function ProductCard({ product: p }) {
           </div>
         )}
 
+        {p.has_variants && (
+          <div style={{ display: 'inline-block', background: '#eef2ff', border: '0.5px solid #c7d2fe', borderRadius: 6, padding: '3px 9px', fontSize: 11, color: '#4338ca', fontWeight: 600, marginBottom: 9 }}>
+            🎨 Multiple options
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 12 }}>
           <span style={{ fontSize: 17, fontWeight: 800, color: DARK }}>{fmt(p.price)}</span>
           {p.old_price && <span style={{ fontSize: 12, color: '#aab0bc', textDecoration: 'line-through' }}>{fmt(p.old_price)}</span>}
         </div>
 
-        <button
-          className={`add-btn ${isAdded ? 'added' : ''} ${isOos ? 'oos' : ''}`}
-          style={{ position: 'relative', zIndex: 2 }}
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            addToCart(p)
-          }}
-          disabled={isOos}
-        >
-          {isAdded ? '✓ Added to Cart!' : isOos ? 'Out of Stock' : '🛒 Add to Cart'}
-        </button>
+        {p.has_variants ? (
+          <Link
+            href={`/product/${p.id}`}
+            className="add-btn"
+            style={{ position: 'relative', zIndex: 2, display: 'block', textAlign: 'center', textDecoration: 'none', boxSizing: 'border-box' }}
+          >
+            Select Options →
+          </Link>
+        ) : (
+          <button
+            className={`add-btn ${isAdded ? 'added' : ''} ${isOos ? 'oos' : ''}`}
+            style={{ position: 'relative', zIndex: 2 }}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              addToCart(p)
+            }}
+            disabled={isOos}
+          >
+            {isAdded ? '✓ Added to Cart!' : isOos ? 'Out of Stock' : '🛒 Add to Cart'}
+          </button>
+        )}
       </div>
     </div>
   )
