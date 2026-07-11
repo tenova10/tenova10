@@ -2,7 +2,7 @@
 
 import { useCart } from '../context/CartContext'
 import CartUpdates from './CartUpdates'
-import { EMOJI, ORANGE, DARK, fmt } from '@/lib/constants'
+import { ORANGE, DARK, fmt } from '@/lib/constants'
 
 export default function CartDrawer() {
   const {
@@ -11,7 +11,9 @@ export default function CartDrawer() {
     cartCount, cartTotal,
     cartMessages, setCartMessages,
     updateQty,
-    setCheckoutOpen, categoriesById,
+    removeFromCart,
+    categoriesById,
+    setCheckoutOpen,
   } = useCart()
 
   if (!cartOpen) return null
@@ -49,36 +51,44 @@ export default function CartDrawer() {
               <div style={{ fontSize: 13 }}>Add some items to get started!</div>
             </div>
           ) : (
-            cart.map(item => (
-              <div key={item.id} className="cart-drawer-item">
-                <div style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: '#eef0f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30 }}>
-                  {item.image_url
-                    ? <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : categoriesById[item.category]?.emoji || '📦'}
-                </div>
+            cart.map(item => {
+              const lineKey = item.variant_id ? `${item.id}::${item.variant_id}` : item.id
+              const emoji = categoriesById[item.category]?.emoji || '📦'
 
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: DARK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {item.name}
-                  </div>
-                  <div style={{ fontSize: 14, color: ORANGE, fontWeight: 800, marginTop: 3 }}>
-                    {fmt(item.price)}
+              return (
+                <div key={lineKey} className="cart-drawer-item">
+                  <div style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', flexShrink: 0, background: '#eef0f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30 }}>
+                    {item.image_url
+                      ? <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : emoji}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
-                    <button className="qty-btn" onClick={() => updateQty(item.id, -1)}>−</button>
-                    <span style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: 'center' }}>{item.qty}</span>
-                    <button className="qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
-                    <button
-                      onClick={() => setCart(c => c.filter(i => i.id !== item.id))}
-                      style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#aab0bc', fontFamily: 'inherit' }}
-                    >
-                      Remove
-                    </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: DARK, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.name}
+                      {item.variant_label && (
+                        <span style={{ color: '#8892a0', fontWeight: 500 }}> · {item.variant_label}</span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 14, color: ORANGE, fontWeight: 800, marginTop: 3 }}>
+                      {fmt(item.price)}
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+                      <button className="qty-btn" onClick={() => updateQty(item.id, -1, item.variant_id || null)}>−</button>
+                      <span style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: 'center' }}>{item.qty}</span>
+                      <button className="qty-btn" onClick={() => updateQty(item.id, 1, item.variant_id || null)}>+</button>
+                      <button
+                        onClick={() => removeFromCart(item.id, item.variant_id || null)}
+                        style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#aab0bc', fontFamily: 'inherit' }}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 

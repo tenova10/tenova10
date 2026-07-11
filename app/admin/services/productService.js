@@ -1,5 +1,7 @@
+import { adminFetch } from '@/lib/adminApiClient'
+
 export async function fetchProducts() {
-  const response = await fetch('/api/products')
+  const response = await adminFetch('/api/products')
   const result = await response.json()
 
   if (!response.ok) {
@@ -10,11 +12,9 @@ export async function fetchProducts() {
 }
 
 export async function createProduct(payload) {
-  const response = await fetch('/api/products', {
+  const response = await adminFetch('/api/products', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
 
@@ -28,15 +28,10 @@ export async function createProduct(payload) {
 }
 
 export async function updateProduct(id, payload) {
-  const response = await fetch('/api/products', {
+  const response = await adminFetch('/api/products', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      id,
-      ...payload,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, ...payload }),
   })
 
   const result = await response.json()
@@ -49,11 +44,9 @@ export async function updateProduct(id, payload) {
 }
 
 export async function deleteProduct(id) {
-  const response = await fetch('/api/products', {
+  const response = await adminFetch('/api/products', {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id }),
   })
 
@@ -67,15 +60,10 @@ export async function deleteProduct(id) {
 }
 
 export async function toggleProduct(id, currentState) {
-  const response = await fetch('/api/products', {
+  const response = await adminFetch('/api/products', {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      id,
-      is_active: !currentState,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, is_active: !currentState }),
   })
 
   const result = await response.json()

@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { isAdminRequest, unauthorizedResponse } from '@/lib/adminAuth'
+import { requireOwner } from '@/lib/adminAuth'
+
 
 function slugify(label) {
   return label.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
 }
 
 export async function GET(request) {
-  if (!isAdminRequest(request)) return unauthorizedResponse()
+  const owner = await requireOwner(request)
+  if (!owner.ok) return owner.response
 
   const { data, error } = await supabaseAdmin
     .from('categories')
@@ -19,7 +21,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (!isAdminRequest(request)) return unauthorizedResponse()
+  const owner = await requireOwner(request)
+  if (!owner.ok) return owner.response
 
   try {
     const { label, emoji } = await request.json()
@@ -52,7 +55,8 @@ export async function POST(request) {
 }
 
 export async function PATCH(request) {
-  if (!isAdminRequest(request)) return unauthorizedResponse()
+  const owner = await requireOwner(request)
+  if (!owner.ok) return owner.response
 
   try {
     const body = await request.json()

@@ -1,6 +1,7 @@
-export async function fetchOrders() {
-  const response = await fetch('/api/orders')
+import { adminFetch } from '@/lib/adminApiClient'
 
+export async function fetchOrders() {
+  const response = await adminFetch('/api/orders')
   const result = await response.json()
 
   if (!response.ok) {
@@ -11,15 +12,10 @@ export async function fetchOrders() {
 }
 
 export async function updateOrderStatus(id, status) {
-  const response = await fetch('/api/orders', {
+  const response = await adminFetch('/api/orders', {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      id,
-      status,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, status }),
   })
 
   const result = await response.json()

@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/adminApiClient'
 import AdminNavbar from './components/AdminNavbar'
 import LoginForm from './components/LoginForm'
 import AdminStats from './components/AdminStats'
@@ -24,9 +25,21 @@ import {
 const ORANGE = '#fd7e0d'
 const DARK   = '#0e1e32'
 
+const LEGACY_PROFILE = {
+  role: 'owner',
+  can_manage_products: true,
+  can_manage_orders: true,
+  can_view_stats: true,
+}
+
 export default function AdminPage() {
   const [authed, setAuthed]         = useState(false)
+  const [adminProfile, setAdminProfile] = useState(null)
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  const [email, setEmail]           = useState('')
   const [password, setPassword]     = useState('')
+
   const [products, setProducts]     = useState([])
   const [orders, setOrders]         = useState([])
   const [categories, setCategories] = useState([])
@@ -41,9 +54,37 @@ export default function AdminPage() {
   const [stats, setStats]           = useState({ total: 0, paid: 0, revenue: 0, lowStock: 0 })
   const fileRef = useRef()
 
-  /* ── Auth ─────────────────────────────────────── */
+  /* ── Auth: restore session on load (real Supabase session first, legacy cookie flag second) ── */
   useEffect(() => {
-    if (sessionStorage.getItem('tenova10_admin') === 'true') setAuthed(true)
+    const restoreSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+
+      if (session) {
+        const { data: profile } = await supabase
+          .from('admin_profiles')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .maybeSingle()
+
+        if (profile && !profile.is_locked) {
+          setAdminProfile(profile)
+          setAuthed(true)
+          setCheckingSession(false)
+          return
+        }
+
+        await supabase.auth.signOut()
+      }
+
+      if (sessionStorage.getItem('tenova10_admin') === 'true') {
+        setAdminProfile(LEGACY_PROFILE)
+        setAuthed(true)
+      }
+
+      setCheckingSession(false)
+    }
+
+    restoreSession()
   }, [])
 
   useEffect(() => {
@@ -53,7 +94,7 @@ export default function AdminPage() {
     fetchCategories()
   }, [authed])
 
-  /* ── Realtime: orders (new orders + status changes from elsewhere) ── */
+  /* ── Realtime: orders ── */
   useEffect(() => {
     if (!authed) return
 
@@ -79,7 +120,7 @@ export default function AdminPage() {
     return () => supabase.removeChannel(channel)
   }, [authed])
 
-  /* ── Realtime: product stock (reservations/purchases happening live) ── */
+  /* ── Realtime: product stock ── */
   useEffect(() => {
     if (!authed) return
 
@@ -104,7 +145,7 @@ export default function AdminPage() {
     return () => supabase.removeChannel(channel)
   }, [authed])
 
-  /* ── Stats ────────────────────────────────────── */
+  /* ── Stats ── */
   useEffect(() => {
     if (!products.length && !orders.length) return
     setStats({
@@ -124,26 +165,26 @@ export default function AdminPage() {
   }
 
   const fetchProducts = async () => {
-  try {
-    const products = await getProducts()
-    setProducts(products)
-  } catch (err) {
-    showToast(err.message, 'error')
+    try {
+      const products = await getProducts()
+      setProducts(products)
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
   }
-}
 
   const fetchOrders = async () => {
-  try {
-    const orders = await getOrders()
-    setOrders(orders)
-  } catch (err) {
-    showToast(err.message, 'error')
+    try {
+      const orders = await getOrders()
+      setOrders(orders)
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
   }
-}
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/admin/categories')
+      const res = await adminFetch('/api/admin/categories')
       const result = await res.json()
       if (!res.ok) throw new Error(result.error)
       setCategories(result)
@@ -152,36 +193,63 @@ export default function AdminPage() {
     }
   }
 
-  const login = async (e) => {
+  /* ── Login: real email/password ── */
+  const loginWithEmail = async (e) => {
     e.preventDefault()
-    const response = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            password
-        })
-    });
 
-    const result = await response.json();
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+
+    const { data: profile } = await supabase
+      .from('admin_profiles')
+      .select('*')
+      .eq('user_id', data.user.id)
+      .maybeSingle()
+
+    if (!profile || profile.is_locked) {
+      await supabase.auth.signOut()
+      showToast('This account is not an authorized admin, or has been locked.', 'error')
+      return
+    }
+
+    setAdminProfile(profile)
+    setAuthed(true)
+  }
+
+  /* ── Login: legacy shared password (fallback) ── */
+  const loginWithMasterPassword = async (e) => {
+    e.preventDefault()
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    })
+
+    const result = await response.json()
 
     if (!response.ok) {
-        showToast(result.error, "error");
-        return;
+      showToast(result.error, 'error')
+      return
     }
 
     sessionStorage.setItem('tenova10_admin', 'true')
-    setAuthed(true);
+    setAdminProfile(LEGACY_PROFILE)
+    setAuthed(true)
   }
 
   const logout = async () => {
+    await supabase.auth.signOut()
     await fetch('/api/admin/logout', { method: 'POST' })
     sessionStorage.removeItem('tenova10_admin')
     setAuthed(false)
+    setAdminProfile(null)
   }
 
-  /* ── Image handling ───────────────────────────── */
+  /* ── Image handling ── */
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (!file) return
@@ -204,7 +272,7 @@ export default function AdminPage() {
     return data.publicUrl
   }
 
-  /* ── Save product ─────────────────────────────── */
+  /* ── Save product ── */
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -217,31 +285,30 @@ export default function AdminPage() {
     }
 
     const payload = {
-  name:        form.name.trim(),
-  description: form.description.trim(),
-  price:       parseFloat(form.price),
-  old_price:   form.old_price ? parseFloat(form.old_price) : null,
-  category:    form.category,
-  stock:       parseInt(form.stock, 10),
-  image_url:   imageUrl,
-  featured:    form.featured,
-}
+      name:        form.name.trim(),
+      description: form.description.trim(),
+      price:       parseFloat(form.price),
+      old_price:   form.old_price ? parseFloat(form.old_price) : null,
+      category:    form.category,
+      stock:       parseInt(form.stock, 10),
+      image_url:   imageUrl,
+      featured:    form.featured,
+    }
 
     try {
-  if (editId) {
-    await updateProduct(editId, payload)
-    showToast('✅ Product updated!')
-  } else {
-    await createProduct(payload)
-    showToast('✅ Product added!')
-  }
+      if (editId) {
+        await updateProduct(editId, payload)
+        showToast('✅ Product updated!')
+      } else {
+        await createProduct(payload)
+        showToast('✅ Product added!')
+      }
 
-  resetForm()
-  fetchProducts()
-
-} catch (err) {
-  showToast('Save failed: ' + err.message, 'error')
-}
+      resetForm()
+      fetchProducts()
+    } catch (err) {
+      showToast('Save failed: ' + err.message, 'error')
+    }
     setSaving(false)
   }
 
@@ -255,94 +322,85 @@ export default function AdminPage() {
   const startEdit = (p) => {
     setEditId(p.id)
     setForm({
-  name:        p.name,
-  description: p.description || '',
-  price:       p.price.toString(),
-  old_price:   p.old_price?.toString() || '',
-  category:    p.category,
-  stock:       p.stock.toString(),
-  image_url:   p.image_url || '',
-  featured:    p.featured || false,
-})
+      name:        p.name,
+      description: p.description || '',
+      price:       p.price.toString(),
+      old_price:   p.old_price?.toString() || '',
+      category:    p.category,
+      stock:       p.stock.toString(),
+      image_url:   p.image_url || '',
+      featured:    p.featured || false,
+    })
     setImagePreview(p.image_url || null)
     setTab('products')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const deleteProduct = async (id, name) => {
-  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return
 
-  try {
-    await removeProduct(id)
-    showToast('🗑️ Product deleted.')
-    fetchProducts()
-  } catch (err) {
-    showToast('Delete failed: ' + err.message, 'error')
+    try {
+      await removeProduct(id)
+      showToast('🗑️ Product deleted.')
+      fetchProducts()
+    } catch (err) {
+      showToast('Delete failed: ' + err.message, 'error')
+    }
   }
-}
 
   const toggleActive = async (id, current) => {
-  try {
-    await toggleProduct(id, current)
-    fetchProducts()
-  } catch (err) {
-    showToast('Update failed: ' + err.message, 'error')
+    try {
+      await toggleProduct(id, current)
+      fetchProducts()
+    } catch (err) {
+      showToast('Update failed: ' + err.message, 'error')
+    }
   }
-}
 
   const updateOrderStatus = async (id, status) => {
-  try {
-    await changeOrderStatus(id, status)
-    fetchOrders()
-  } catch (err) {
-    showToast('Update failed: ' + err.message, 'error')
+    try {
+      await changeOrderStatus(id, status)
+      fetchOrders()
+    } catch (err) {
+      showToast('Update failed: ' + err.message, 'error')
+    }
   }
-}
 
-  
-  /* ═══ LOGIN SCREEN ════════════════════════════ */
+  if (checkingSession) {
+    return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#8892a0'}}>Loading...</div>
+  }
+
+  /* ═══ LOGIN SCREEN ═══ */
   if (!authed) {
     return (
       <LoginForm
+        email={email}
+        setEmail={setEmail}
         password={password}
         setPassword={setPassword}
-        login={login}
+        loginWithEmail={loginWithEmail}
+        loginWithMasterPassword={loginWithMasterPassword}
         toast={toast}
       />
     )
   }
 
-  /* ═══ ADMIN DASHBOARD ════════════════════════ */
+  /* ═══ ADMIN DASHBOARD ═══ */
   return (
     <div style={{minHeight:'100vh',background:'#f7f8fc'}}>
-      {/* Toast */}
       {toast && (
         <div style={{position:'fixed',top:20,right:20,background: toast.type==='error'?'#e53e3e':DARK,color:'white',padding:'13px 20px',borderRadius:11,zIndex:1000,fontSize:14,fontWeight:500,boxShadow:'0 4px 20px rgba(0,0,0,0.2)'}}>
           {toast.msg}
         </div>
       )}
 
-      {/* Admin Navbar */}
-      <AdminNavbar
-        tab={tab}
-        setTab={setTab}
-        logout={logout}
-      />
+      <AdminNavbar tab={tab} setTab={setTab} logout={logout} />
 
-      {/* Stats bar */}
-      <AdminStats
-        stats={stats}
-        products={products}
-        fmt={fmt}
-      />
+      <AdminStats stats={stats} products={products} fmt={fmt} />
 
       <div style={{maxWidth:1200,margin:'0 auto',padding:'28px 24px'}}>
-
-        {/* ── PRODUCTS TAB ────────────────────── */}
         {tab === 'products' && (
           <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:24,alignItems:'start'}}>
-
-            {/* Product Form */}
             <ProductForm
               editId={editId}
               handleSubmit={handleSubmit}
@@ -359,9 +417,7 @@ export default function AdminPage() {
               setImageFile={setImageFile}
               setImagePreview={setImagePreview}
             />
-            
 
-            {/* Product List */}
             <ProductList
               products={products}
               toggleActive={toggleActive}
@@ -371,7 +427,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* ── CATEGORIES TAB ──────────────────── */}
         {tab === 'categories' && (
           <CategoryManager
             categories={categories}
@@ -380,7 +435,6 @@ export default function AdminPage() {
           />
         )}
 
-        {/* ── ORDERS TAB ──────────────────────── */}
         {tab === 'orders' && (
           <div>
             <h2 style={{fontSize:16,fontWeight:700,color:DARK,marginBottom:18}}>Orders ({orders.length})</h2>
@@ -428,13 +482,4 @@ export default function AdminPage() {
       </div>
     </div>
   )
-}
-
-const labelStyle = {
-  display: 'block',
-  fontSize: 12,
-  fontWeight: 700,
-  color: '#0e1e32',
-  marginBottom: 5,
-  letterSpacing: '0.2px',
 }

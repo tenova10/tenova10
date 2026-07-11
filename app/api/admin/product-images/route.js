@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { isAdminRequest, unauthorizedResponse } from '@/lib/adminAuth'
+import { requirePermission } from '@/lib/adminAuth'
 
 export async function GET(request) {
-  if (!isAdminRequest(request)) return unauthorizedResponse()
+  const permission = await requirePermission(request, 'can_manage_products')
+  if (!permission.ok) return permission.response
 
   const { searchParams } = new URL(request.url)
   const productId = searchParams.get('product_id')
@@ -20,7 +21,8 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  if (!isAdminRequest(request)) return unauthorizedResponse()
+  const permission = await requirePermission(request, 'can_manage_products')
+  if (!permission.ok) return permission.response
 
   try {
     const { product_id, image_url } = await request.json()
@@ -46,7 +48,8 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
-  if (!isAdminRequest(request)) return unauthorizedResponse()
+  const permission = await requirePermission(request, 'can_manage_products')
+  if (!permission.ok) return permission.response
 
   try {
     const { id } = await request.json()

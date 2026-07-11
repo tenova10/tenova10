@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { isAdminRequest, unauthorizedResponse } from '@/lib/adminAuth'
+import { requirePermission } from '@/lib/adminAuth'
+
 
 function sanitizeProductPayload(payload) {
   return {
@@ -36,7 +37,8 @@ async function validateProductPayload(payload) {
 
 export async function POST(request) {
   try {
-    if (!isAdminRequest(request)) return unauthorizedResponse()
+    const permission = await requirePermission(request, 'can_manage_products')
+    if (!permission.ok) return permission.response
 
     const payload = sanitizeProductPayload(await request.json())
     const validationError = await validateProductPayload(payload)
@@ -69,7 +71,8 @@ export async function POST(request) {
 
 export async function PUT(request) {
   try {
-    if (!isAdminRequest(request)) return unauthorizedResponse()
+    const permission = await requirePermission(request, 'can_manage_products')
+    if (!permission.ok) return permission.response
 
     const body = await request.json()
 
@@ -125,7 +128,8 @@ export async function PUT(request) {
 
 export async function PATCH(request) {
   try {
-    if (!isAdminRequest(request)) return unauthorizedResponse()
+    const permission = await requirePermission(request, 'can_manage_products')
+    if (!permission.ok) return permission.response
 
     const { id, is_active } = await request.json()
 
@@ -161,7 +165,8 @@ export async function PATCH(request) {
 
 export async function GET(request) {
   try {
-    if (!isAdminRequest(request)) return unauthorizedResponse()
+    const permission = await requirePermission(request, 'can_manage_products')
+    if (!permission.ok) return permission.response
 
     const { data, error } = await supabaseAdmin
       .from('products')
@@ -188,7 +193,8 @@ export async function GET(request) {
 
 export async function DELETE(request) {
   try {
-    if (!isAdminRequest(request)) return unauthorizedResponse()
+    const permission = await requirePermission(request, 'can_manage_products')
+    if (!permission.ok) return permission.response
 
     const { id } = await request.json()
 

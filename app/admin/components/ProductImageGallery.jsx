@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/adminApiClient'
 
 const DARK = '#0e1e32'
-const ORANGE = '#fd7e0d'
 
 export default function ProductImageGallery({ productId, showToast }) {
   const [images, setImages] = useState([])
@@ -13,7 +13,7 @@ export default function ProductImageGallery({ productId, showToast }) {
 
   const fetchImages = async () => {
     try {
-      const res = await fetch(`/api/admin/product-images?product_id=${productId}`)
+      const res = await adminFetch(`/api/admin/product-images?product_id=${productId}`)
       const result = await res.json()
       if (!res.ok) throw new Error(result.error)
       setImages(result)
@@ -39,7 +39,7 @@ export default function ProductImageGallery({ productId, showToast }) {
 
       const { data: urlData } = supabase.storage.from('products').getPublicUrl(fileName)
 
-      const res = await fetch('/api/admin/product-images', {
+      const res = await adminFetch('/api/admin/product-images', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ product_id: productId, image_url: urlData.publicUrl }),
@@ -58,7 +58,7 @@ export default function ProductImageGallery({ productId, showToast }) {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch('/api/admin/product-images', {
+      const res = await adminFetch('/api/admin/product-images', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),

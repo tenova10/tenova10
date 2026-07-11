@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { isAdminRequest, unauthorizedResponse } from '@/lib/adminAuth'
+import { requirePermission } from '@/lib/adminAuth'
+
 
 const ORDER_STATUSES = new Set([
   'pending',
@@ -14,7 +15,8 @@ const ORDER_STATUSES = new Set([
 
 export async function GET(request) {
   try {
-    if (!isAdminRequest(request)) return unauthorizedResponse()
+    const permission = await requirePermission(request, 'can_manage_orders')
+    if (!permission.ok) return permission.response
 
     const { data, error } = await supabaseAdmin
       .from('orders')
@@ -41,7 +43,8 @@ export async function GET(request) {
 
 export async function PATCH(request) {
   try {
-    if (!isAdminRequest(request)) return unauthorizedResponse()
+    const permission = await requirePermission(request, 'can_manage_orders')
+    if (!permission.ok) return permission.response
 
     const { id, status } = await request.json()
 

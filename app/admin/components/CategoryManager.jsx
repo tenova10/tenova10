@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { adminFetch } from '@/lib/adminApiClient'
 
 const ORANGE = '#fd7e0d'
 const DARK = '#0e1e32'
@@ -15,7 +16,7 @@ export default function CategoryManager({ categories, refreshCategories, showToa
     if (!newLabel.trim()) return
     setSaving(true)
     try {
-      const res = await fetch('/api/admin/categories', {
+      const res = await adminFetch('/api/admin/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ label: newLabel, emoji: newEmoji }),
@@ -34,7 +35,7 @@ export default function CategoryManager({ categories, refreshCategories, showToa
 
   const toggleVisibility = async (id, current) => {
     try {
-      const res = await fetch('/api/admin/categories', {
+      const res = await adminFetch('/api/admin/categories', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, show_on_storefront: !current }),
@@ -49,7 +50,7 @@ export default function CategoryManager({ categories, refreshCategories, showToa
 
   const showAll = async () => {
     try {
-      const res = await fetch('/api/admin/categories', {
+      const res = await adminFetch('/api/admin/categories', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ showAll: true }),
@@ -65,7 +66,6 @@ export default function CategoryManager({ categories, refreshCategories, showToa
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'start' }}>
-      {/* Add category form */}
       <div style={{ background: 'white', borderRadius: 16, padding: 24, border: '0.5px solid #eef0f5', position: 'sticky', top: 20 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: DARK, marginBottom: 20 }}>➕ Add Category</h2>
         <form onSubmit={addCategory}>
@@ -95,7 +95,6 @@ export default function CategoryManager({ categories, refreshCategories, showToa
         </form>
       </div>
 
-      {/* Category list */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h2 style={{ fontSize: 16, fontWeight: 700, color: DARK }}>All Categories ({categories.length})</h2>

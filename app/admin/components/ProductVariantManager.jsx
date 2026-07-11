@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { adminFetch } from '@/lib/adminApiClient'
 
 const DARK = '#0e1e32'
 const ORANGE = '#fd7e0d'
@@ -13,7 +14,7 @@ export default function ProductVariantManager({ productId, showToast }) {
 
   const fetchVariants = async () => {
     try {
-      const res = await fetch(`/api/admin/product-variants?product_id=${productId}`)
+      const res = await adminFetch(`/api/admin/product-variants?product_id=${productId}`)
       const result = await res.json()
       if (!res.ok) throw new Error(result.error)
       setVariants(result)
@@ -32,7 +33,7 @@ export default function ProductVariantManager({ productId, showToast }) {
 
     setSaving(true)
     try {
-      const res = await fetch('/api/admin/product-variants', {
+      const res = await adminFetch('/api/admin/product-variants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ product_id: productId, label, stock }),
@@ -52,7 +53,7 @@ export default function ProductVariantManager({ productId, showToast }) {
 
   const updateVariantStock = async (id, newStock) => {
     try {
-      const res = await fetch('/api/admin/product-variants', {
+      const res = await adminFetch('/api/admin/product-variants', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, stock: newStock }),
@@ -68,7 +69,7 @@ export default function ProductVariantManager({ productId, showToast }) {
   const deleteVariant = async (id, variantLabel) => {
     if (!confirm(`Remove variant "${variantLabel}"?`)) return
     try {
-      const res = await fetch('/api/admin/product-variants', {
+      const res = await adminFetch('/api/admin/product-variants', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
