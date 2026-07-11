@@ -8,6 +8,7 @@ import AdminStats from './components/AdminStats'
 import ProductForm from './components/ProductForm'
 import ProductList from './components/ProductList'
 import CategoryManager from './components/CategoryManager'
+import StaffManager from './components/StaffManager'
 import { EMPTY_FORM, EMOJI } from './utils/constants'
 import { fmt } from '@/lib/utils'
 import {
@@ -394,9 +395,9 @@ export default function AdminPage() {
         </div>
       )}
 
-      <AdminNavbar tab={tab} setTab={setTab} logout={logout} />
+      <AdminNavbar tab={tab} setTab={setTab} logout={logout} role={adminProfile?.role} />
 
-      <AdminStats stats={stats} products={products} fmt={fmt} />
+      <AdminStats stats={stats} products={products} fmt={fmt} adminProfile={adminProfile} />
 
       <div style={{maxWidth:1200,margin:'0 auto',padding:'28px 24px'}}>
         {tab === 'products' && (
@@ -433,6 +434,10 @@ export default function AdminPage() {
             refreshCategories={fetchCategories}
             showToast={showToast}
           />
+        )}
+
+        {tab === 'staff' && (
+          <StaffManager showToast={showToast} />
         )}
 
         {tab === 'orders' && (

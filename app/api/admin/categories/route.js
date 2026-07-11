@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
-import { requireOwner } from '@/lib/adminAuth'
+import { requireOwner, requirePermission } from '@/lib/adminAuth'
 
 
 function slugify(label) {
@@ -8,8 +8,8 @@ function slugify(label) {
 }
 
 export async function GET(request) {
-  const owner = await requireOwner(request)
-  if (!owner.ok) return owner.response
+  const permission = await requirePermission(request, 'can_manage_products')
+  if (!permission.ok) return permission.response
 
   const { data, error } = await supabaseAdmin
     .from('categories')

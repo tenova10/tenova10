@@ -7,6 +7,7 @@ export default function AdminNavbar({
   tab,
   setTab,
   logout,
+  role,
 }) {
   return (
     <nav style={{ background: DARK, padding: '0 24px' }}>
@@ -49,7 +50,7 @@ export default function AdminNavbar({
             alignItems: 'center',
           }}
         >
-          {['products', 'categories', 'orders'].map((t) => (
+          {(role === 'owner' ? ['products', 'categories', 'orders', 'staff'] : ['products', 'orders']).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
