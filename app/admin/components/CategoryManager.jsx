@@ -65,7 +65,7 @@ export default function CategoryManager({ categories, refreshCategories, showToa
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'start' }}>
+    <div className="admin-two-col">
       <div style={{ background: 'white', borderRadius: 16, padding: 24, border: '0.5px solid #eef0f5', position: 'sticky', top: 20 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: DARK, marginBottom: 20 }}>➕ Add Category</h2>
         <form onSubmit={addCategory}>
@@ -108,7 +108,7 @@ export default function CategoryManager({ categories, refreshCategories, showToa
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {categories.map(c => (
-            <div key={c.id} style={{ background: 'white', borderRadius: 13, padding: '14px 16px', border: '0.5px solid #eef0f5', display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div key={c.id} style={{ background: 'white', borderRadius: 13, padding: '14px 16px', border: '0.5px solid #eef0f5', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
               <div style={{ fontSize: 26 }}>{c.emoji}</div>
               <div style={{ flex: 1, fontWeight: 600, fontSize: 14, color: DARK }}>{c.label}</div>
               <span

@@ -521,3 +521,264 @@ body {
   }
   .cart-drawer-handle { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════
+   PRODUCT PAGE — mobile responsive
+═══════════════════════════════════════════════════ */
+
+.pdp-container {
+  max-width: 1100px;
+  margin: 50px auto;
+  padding: 0 20px;
+}
+@media (max-width: 768px) {
+  .pdp-container {
+    margin: 20px auto;
+    padding: 0 16px;
+  }
+}
+
+.pdp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+}
+@media (max-width: 768px) {
+  .pdp-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.pdp-image-wrap {
+  min-height: 500px;
+}
+@media (max-width: 768px) {
+  .pdp-image-wrap { min-height: 320px; }
+}
+
+.pdp-title {
+  font-size: 38px;
+}
+@media (max-width: 768px) {
+  .pdp-title { font-size: 25px; }
+}
+
+.pdp-price {
+  font-size: 34px;
+}
+@media (max-width: 768px) {
+  .pdp-price { font-size: 24px; }
+}
+
+.pdp-old-price {
+  font-size: 22px;
+}
+@media (max-width: 768px) {
+  .pdp-old-price { font-size: 16px; }
+}
+
+.pdp-thumb {
+  width: 72px;
+  height: 72px;
+}
+@media (max-width: 480px) {
+  .pdp-thumb { width: 56px; height: 56px; }
+}
+
+.pdp-add-btn {
+  padding: 16px 28px;
+  font-size: 16px;
+  width: auto;
+  min-width: 220px;
+}
+@media (max-width: 768px) {
+  .pdp-add-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.pdp-similar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 16px;
+}
+@media (max-width: 480px) {
+  .pdp-similar-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   NAVBAR — mobile responsive
+═══════════════════════════════════════════════════ */
+
+.navbar-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 60px;
+}
+
+.navbar-search-wrap {
+  flex: 1;
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .navbar-inner {
+    height: auto;
+    padding: 10px 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .navbar-logo {
+    order: 1;
+  }
+  .navbar-cart {
+    order: 2;
+    margin-left: auto;
+  }
+  .navbar-search-wrap {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+    margin: 0;
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   HOMEPAGE — mobile responsive
+═══════════════════════════════════════════════════ */
+
+.hero-section {
+  padding: 48px 20px 40px;
+}
+@media (max-width: 640px) {
+  .hero-section { padding: 32px 16px 28px; }
+}
+
+.hero-title {
+  font-size: 40px;
+}
+@media (max-width: 640px) {
+  .hero-title { font-size: 28px; }
+}
+
+.hero-subtitle {
+  font-size: 15px;
+  max-width: 440px;
+}
+@media (max-width: 640px) {
+  .hero-subtitle { font-size: 14px; }
+}
+
+.trust-strip {
+  padding: 13px 20px;
+  gap: 36px;
+}
+@media (max-width: 640px) {
+  .trust-strip {
+    gap: 16px;
+    justify-content: center;
+    padding: 12px 16px;
+  }
+  .trust-strip > div {
+    font-size: 11px;
+  }
+}
+
+.products-section {
+  padding: 30px 20px 56px;
+}
+@media (max-width: 480px) {
+  .products-section { padding: 20px 14px 40px; }
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 16px;
+}
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+.category-pills-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+@media (max-width: 480px) {
+  .category-pills-row {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .category-pills-row::-webkit-scrollbar { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════
+   ADMIN — mobile responsive
+═══════════════════════════════════════════════════ */
+
+.admin-two-col {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .admin-two-col {
+    grid-template-columns: 1fr;
+  }
+  /* Disable sticky positioning on the form/add panel once it's stacked above the list */
+  .admin-two-col > *:first-child {
+    position: static !important;
+  }
+}
+
+.admin-navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 0;
+}
+
+.admin-navbar-tabs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 10px;
+}
+@media (max-width: 700px) {
+  .admin-navbar-tabs {
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-navbar-tabs::-webkit-scrollbar { display: none; }
+  .admin-navbar-tabs > * { flex-shrink: 0; }
+}
+
+.admin-stats-row {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .admin-stats-row { gap: 16px; }
+}

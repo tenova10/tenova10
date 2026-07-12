@@ -401,7 +401,7 @@ export default function AdminPage() {
 
       <div style={{maxWidth:1200,margin:'0 auto',padding:'28px 24px'}}>
         {tab === 'products' && (
-          <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:24,alignItems:'start'}}>
+          <div className="admin-two-col">
             <ProductForm
               editId={editId}
               handleSubmit={handleSubmit}
@@ -446,7 +446,7 @@ export default function AdminPage() {
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               {orders.map(o => (
                 <div key={o.id} style={{background:'white',borderRadius:14,padding:'18px 20px',border:'0.5px solid #eef0f5'}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,marginBottom:10}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,marginBottom:10,flexWrap:'wrap'}}>
                     <div>
                       <div style={{fontWeight:700,fontSize:15,color:DARK}}>{o.customer_name}</div>
                       <div style={{fontSize:13,color:'#8892a0',marginTop:2}}>{o.customer_email} · {o.customer_phone}</div>

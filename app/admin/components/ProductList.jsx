@@ -91,8 +91,7 @@ export default function ProductList({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {filtered.map(p => (
-          <div key={p.id} style={{ background: 'white', borderRadius: 13, padding: '14px 16px', border: '0.5px solid #eef0f5', display: 'flex', gap: 14, alignItems: 'center' }}>
-            {/* Thumb */}
+          <div key={p.id} style={{ background: 'white', borderRadius: 13, padding: '14px 16px', border: '0.5px solid #eef0f5', display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>            {/* Thumb */}
             <div style={{ width: 54, height: 54, borderRadius: 9, overflow: 'hidden', flexShrink: 0, background: '#f0f2f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
               {p.image_url
                 ? <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -125,7 +124,7 @@ export default function ProductList({
               </div>
             </div>
             {/* Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
               <span
                 style={{
                   padding: '5px 10px',

@@ -133,7 +133,7 @@ export default function StaffManager({ showToast }) {
   }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 24, alignItems: 'start' }}>
+    <div className="admin-two-col">
       {/* Create staff form */}
       <div style={{ background: 'white', borderRadius: 16, padding: 24, border: '0.5px solid #eef0f5', position: 'sticky', top: 20 }}>
         <h2 style={{ fontSize: 16, fontWeight: 700, color: DARK, marginBottom: 20 }}>➕ Add Staff</h2>
@@ -184,7 +184,7 @@ export default function StaffManager({ showToast }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {staff.map(s => (
             <div key={s.user_id} style={{ background: 'white', borderRadius: 13, padding: '16px 18px', border: '0.5px solid #eef0f5' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: DARK }}>{s.display_name}</div>
                   <span

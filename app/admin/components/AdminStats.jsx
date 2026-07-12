@@ -20,7 +20,7 @@ export default function AdminStats({ stats, products, fmt, adminProfile }) {
 
   return (
     <div style={{background:'white',padding:'14px 24px',borderBottom:'1px solid #eef0f5'}}>
-      <div style={{maxWidth:1200,margin:'0 auto',display:'flex',gap:32,flexWrap:'wrap'}}>
+      <div className="admin-stats-row">
         {items.map(([icon, label, val]) => (
           <div key={label}>
             <div style={{fontSize:11,color:'#8892a0',fontWeight:600,marginBottom:2}}>

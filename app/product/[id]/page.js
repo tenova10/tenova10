@@ -86,7 +86,6 @@ export default function ProductPage() {
     loadProduct()
   }, [id])
 
-  /* ── Realtime stock for this specific product ── */
   useEffect(() => {
     if (!id) return
 
@@ -105,7 +104,6 @@ export default function ProductPage() {
     return () => supabase.removeChannel(channel)
   }, [id])
 
-  /* ── Realtime stock for this product's variants ── */
   useEffect(() => {
     if (!id || !product?.has_variants) return
 
@@ -173,18 +171,18 @@ export default function ProductPage() {
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: '50px auto', padding: '0 20px' }}>
+    <div className="pdp-container">
       <button
         onClick={() => router.back()}
-        style={{ marginBottom: 30, background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, fontWeight: 700 }}
+        style={{ marginBottom: 24, background: 'none', border: 'none', cursor: 'pointer', color: ORANGE, fontWeight: 700 }}
       >
         ← Back
       </button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 50 }}>
+      <div className="pdp-grid">
         {/* Image + gallery */}
         <div>
-          <div style={{ position: 'relative', background: '#f5f5f5', borderRadius: 20, overflow: 'hidden', minHeight: 500, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div className="pdp-image-wrap" style={{ position: 'relative', background: '#f5f5f5', borderRadius: 20, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             {activeImage ? (
               <img
                 src={activeImage}
@@ -204,7 +202,7 @@ export default function ProductPage() {
               {isWished ? '❤️' : '🤍'}
             </button>
 
-            {product.old_price && <span className="sale-badge" style={{ fontSize: 13, padding: '5px 12px' }}>SALE</span>}
+            {product.on_sale && <span className="sale-badge" style={{ fontSize: 13, padding: '5px 12px' }}>SALE</span>}
 
             {isOos && (
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -219,10 +217,9 @@ export default function ProductPage() {
                 <button
                   key={i}
                   onClick={() => setActiveImage(url)}
+                  className="pdp-thumb"
                   style={{
                     flexShrink: 0,
-                    width: 72,
-                    height: 72,
                     borderRadius: 10,
                     overflow: 'hidden',
                     border: activeImage === url ? `2px solid ${ORANGE}` : '2px solid transparent',
@@ -244,7 +241,7 @@ export default function ProductPage() {
             {categoriesById[product.category]?.label?.toUpperCase() || product.category.toUpperCase()}
           </div>
 
-          <h1 style={{ color: DARK, fontSize: 38, marginBottom: 15 }}>
+          <h1 className="pdp-title" style={{ color: DARK, marginBottom: 15 }}>
             {product.name}
           </h1>
 
@@ -255,12 +252,12 @@ export default function ProductPage() {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 20 }}>
-            <div style={{ fontSize: 34, color: ORANGE, fontWeight: 800 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 20, flexWrap: 'wrap' }}>
+            <div className="pdp-price" style={{ color: ORANGE, fontWeight: 800 }}>
               {fmt(product.price)}
             </div>
             {product.old_price && (
-              <div style={{ textDecoration: 'line-through', color: '#999', fontSize: 22 }}>
+              <div className="pdp-old-price" style={{ textDecoration: 'line-through', color: '#999' }}>
                 {fmt(product.old_price)}
               </div>
             )}
@@ -270,7 +267,6 @@ export default function ProductPage() {
             {product.description}
           </div>
 
-          {/* ── Variant picker ── */}
           {product.has_variants && (
             <div style={{ marginBottom: 22 }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: DARK, marginBottom: 10 }}>
@@ -322,7 +318,7 @@ export default function ProductPage() {
           </div>
 
           {!needsVariantSelection && !isOos && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: DARK }}>Quantity</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <button
@@ -345,8 +341,7 @@ export default function ProductPage() {
           )}
 
           <button
-            className={`add-btn ${isAdded ? 'added' : ''} ${(isOos || needsVariantSelection) ? 'oos' : ''}`}
-            style={{ padding: '16px 28px', fontSize: 16, width: 'auto', minWidth: 220 }}
+            className={`add-btn pdp-add-btn ${isAdded ? 'added' : ''} ${(isOos || needsVariantSelection) ? 'oos' : ''}`}
             onClick={handleAddToCart}
             disabled={isOos || needsVariantSelection}
           >
@@ -362,9 +357,9 @@ export default function ProductPage() {
       </div>
 
       {similar.length > 0 && (
-        <div style={{ marginTop: 80 }}>
-          <h2 style={{ color: DARK, marginBottom: 25 }}>Similar Products</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(215px,1fr))', gap: 16 }}>
+        <div style={{ marginTop: 60 }}>
+          <h2 style={{ color: DARK, marginBottom: 20, fontSize: 22 }}>Similar Products</h2>
+          <div className="pdp-similar-grid">
             {similar.map(item => <ProductCard key={item.id} product={item} />)}
           </div>
         </div>
