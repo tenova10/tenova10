@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
 import CartDrawer from './components/CartDrawer'
 import CheckoutModal from './components/CheckoutModal'
+import ReservationTimer from './components/ReservationTimer'
 
 export const metadata = {
   title: 'tenova10 — Shop 10/10 Products',
@@ -13,6 +14,9 @@ export const metadata = {
     title: 'tenova10',
     description: 'Shop 10/10 products you\'ll absolutely love.',
     type: 'website',
+  },
+  icons: {
+    icon: '/favicon.webp',
   },
 }
 
@@ -26,6 +30,7 @@ export default function RootLayout({ children }) {
           {children}
           <CartDrawer />
           <CheckoutModal />
+          <ReservationTimer />
         </CartProvider>
       </body>
     </html>

@@ -6,6 +6,7 @@ import { useCart } from './context/CartContext'
 import ProductCard from './components/ProductCard'
 import { ORANGE, DARK, EMOJI, fmt } from '@/lib/constants'
 import { fuzzy } from '@/lib/search'
+import FeaturedCarousel from './components/FeaturedCarousel'
 
 /* ─── Fuzzy search (Levenshtein) ────────────────── */
 
@@ -108,30 +109,7 @@ export default function ShopPage() {
               Hand-picked products we think you'll love.
             </p>
 
-            <div className="featured-slider">
-              <div className="featured-track">
-                {[...featuredProducts, ...featuredProducts].map((p, index) => (
-                  <Link
-                    key={`${p.id}-${index}`}
-                    href={`/product/${p.id}`}
-                    className="featured-card"
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                  >
-                    <div className="featured-image">
-                      {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} />
-                      ) : (
-                        <div style={{ fontSize: 60 }}>{EMOJI[p.category]}</div>
-                      )}
-                    </div>
-                    <div className="featured-body">
-                      <div className="featured-name">{p.name}</div>
-                      <div className="featured-price">{fmt(p.price)}</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <FeaturedCarousel products={featuredProducts} />
           </div>
         </section>
       )}

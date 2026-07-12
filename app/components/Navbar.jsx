@@ -22,11 +22,15 @@ export default function Navbar() {
       <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', alignItems: 'center', gap: 12, height: 60 }}>
         {/* Logo */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', flexShrink: 0 }}>
+          <img src="/white_logo.png" alt="tenova10" style={{ height: 36, width: 'auto' }} />
+        </Link>
+
+        {/* <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none', flexShrink: 0 }}>
           <div style={{ width: 8, height: 8, background: ORANGE, transform: 'rotate(45deg)' }} />
           <span style={{ color: 'white', fontWeight: 800, fontSize: 19, letterSpacing: '-0.3px' }}>
             tenova<span style={{ color: ORANGE }}>10</span>
           </span>
-        </Link>
+        </Link> */}
 
         {/* Search */}
         <div style={{ flex: 1, position: 'relative', maxWidth: 500, margin: '0 auto' }}>
