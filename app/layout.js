@@ -26,8 +26,12 @@ export default function RootLayout({ children }) {
       <body>
         <CartProvider>
           <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
-          <Navbar />
-          {children}
+          <div className="site-frame">
+            <Navbar />
+            <div className="site-content-pad">
+              {children}
+            </div>
+          </div>
           <CartDrawer />
           <CheckoutModal />
           <ReservationTimer />

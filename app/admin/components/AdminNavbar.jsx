@@ -9,7 +9,8 @@ export default function AdminNavbar({
   logout,
   role,
 }) {
-  const tabs = role === 'owner' ? ['products', 'categories', 'orders', 'staff'] : ['products', 'orders']
+  const tabs = role === 'owner' ? ['products', 'categories', 'orders', 'staff', 'banner'] : ['products', 'orders']
+  const tabLabels = { products: 'Products', categories: 'Categories', orders: 'Orders', staff: 'Staff', banner: 'Hero Banner' }
 
   return (
     <nav style={{ background: DARK, padding: '0 20px' }}>
@@ -58,7 +59,7 @@ export default function AdminNavbar({
                 whiteSpace: 'nowrap',
               }}
             >
-              {t}
+              {tabLabels[t] || t}
             </button>
           ))}
         </div>

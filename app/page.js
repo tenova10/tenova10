@@ -5,15 +5,9 @@ import { supabase } from '@/lib/supabase'
 import { useCart } from './context/CartContext'
 import ProductCard from './components/ProductCard'
 import FeaturedCarousel from './components/FeaturedCarousel'
+import HeroBannerCarousel from './components/HeroBannerCarousel'
 import { fuzzy } from '@/lib/search'
 import { ORANGE, DARK, EMOJI, fmt } from '@/lib/constants'
-
-const CATS = [
-  { k: 'all', l: 'All Products' },
-  { k: 'fashion', l: '👗 Fashion' },
-  { k: 'kitchen', l: '🍳 Kitchenware' },
-  { k: 'household', l: '🏠 Household' },
-]
 
 export default function ShopPage() {
   const { showToast, searchQ, categoriesById } = useCart()
@@ -70,24 +64,7 @@ export default function ShopPage() {
 
   return (
     <>
-      {/* ── HERO ─────────────────────────────────── */}
-      <div className="hero-section" style={{ background: DARK, textAlign: 'center' }}>
-        <div style={{ display: 'inline-block', background: 'rgba(253,126,13,0.1)', borderRadius: 20, padding: '6px 16px', marginBottom: 16, border: '0.5px solid rgba(253,126,13,0.22)' }}>
-          <span style={{ color: ORANGE, fontSize: 12, fontWeight: 600 }}>🚚 Free delivery on orders above ₦30,000</span>
-        </div>
-        <h1 className="hero-title" style={{ color: 'white', fontWeight: 800, lineHeight: 1.15, letterSpacing: '-0.5px', margin: '0 0 12px' }}>
-          Shop <span style={{ color: ORANGE }}>10/10</span> products<br />you'll absolutely love
-        </h1>
-        <p className="hero-subtitle" style={{ color: 'rgba(255,255,255,0.5)', margin: '0 auto 26px', lineHeight: 1.65 }}>
-          Fashion, kitchenware & household essentials — curated for quality, priced for everyone.
-        </p>
-        <button
-          className="primary-btn"
-          onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
-        >
-          Shop Now →
-        </button>
-      </div>
+      <HeroBannerCarousel />
 
       {/* ── TRUST STRIP ──────────────────────────── */}
       <div className="trust-strip" style={{ background: 'white', borderBottom: '1px solid #eef0f5', display: 'flex', flexWrap: 'wrap' }}>
@@ -103,22 +80,21 @@ export default function ShopPage() {
 
       {/* ── FEATURED PRODUCTS ───────────────────── */}
       {featuredProducts.length > 0 && (
-        <section style={{ background: '#fafafa', borderTop: '1px solid #eef0f5', borderBottom: '1px solid #eef0f5', padding: '26px 0', overflow: 'hidden' }}>
-          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px' }}>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: DARK, marginBottom: 6 }}>
-              ⭐ Featured Products
-            </h2>
-            <p style={{ color: '#6b7280', marginBottom: 20, fontSize: 14 }}>
-              Hand-picked products we think you'll love.
-            </p>
+        <div className="featured-outer">
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: DARK, marginBottom: 6 }}>
+            Featured Products
+          </h2>
+          <p style={{ color: '#6b7280', marginBottom: 20, fontSize: 14 }}>
+            Hand-picked products we think you'll love.
+          </p>
 
-            <FeaturedCarousel products={featuredProducts} />
-          </div>
-        </section>
+          <FeaturedCarousel products={featuredProducts} />
+        </div>
       )}
 
       {/* ── PRODUCTS ─────────────────────────────── */}
       <div id="products" className="products-section">
+        <div className="products-narrow-wrap">
         <div className="category-pills-row">
           {dynamicCats.map(c => (
             <button
@@ -165,6 +141,7 @@ export default function ShopPage() {
             {filtered.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         )}
+        </div>
       </div>
 
       {/* ── FOOTER ───────────────────────────────── */}

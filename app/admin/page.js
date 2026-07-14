@@ -9,6 +9,7 @@ import ProductForm from './components/ProductForm'
 import ProductList from './components/ProductList'
 import CategoryManager from './components/CategoryManager'
 import StaffManager from './components/StaffManager'
+import HeroBannerManager from './components/HeroBannerManager'
 import { EMPTY_FORM, EMOJI } from './utils/constants'
 import { fmt } from '@/lib/utils'
 import {
@@ -438,6 +439,10 @@ export default function AdminPage() {
 
         {tab === 'staff' && (
           <StaffManager showToast={showToast} />
+        )}
+
+        {tab === 'banner' && (
+          <HeroBannerManager showToast={showToast} />
         )}
 
         {tab === 'orders' && (
