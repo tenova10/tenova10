@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -10,7 +10,7 @@ import HeroBannerCarousel from './components/HeroBannerCarousel'
 import { fuzzy } from '@/lib/search'
 import { ORANGE, DARK, EMOJI, fmt } from '@/lib/constants'
 
-export default function ShopPage() {
+function ShopPageContent() {
   const { showToast, searchQ, categoriesById } = useCart()
 
   const [products, setProducts] = useState([])
@@ -166,5 +166,13 @@ export default function ShopPage() {
         </div>
       </footer>
     </>
+  )
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={null}>
+      <ShopPageContent />
+    </Suspense>
   )
 }
