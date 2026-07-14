@@ -13,7 +13,7 @@ export default function AdminNavbar({
   const tabLabels = { products: 'Products', categories: 'Categories', orders: 'Orders', staff: 'Staff', banner: 'Hero Banner' }
 
   return (
-    <nav style={{ background: DARK, padding: '0 20px' }}>
+    <nav style={{ background: DARK, padding: '0 20px', position: 'sticky', top: 0, zIndex: 50 }}>
       <div className="admin-navbar-inner">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ color: 'white', fontWeight: 800, fontSize: 18, flexShrink: 0 }}>

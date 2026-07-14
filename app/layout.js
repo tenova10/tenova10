@@ -1,10 +1,11 @@
 import './globals.css'
 import Script from 'next/script'
 import { CartProvider } from './context/CartContext'
-import Navbar from './components/Navbar'
+import AppShell from './components/AppShell'
 import CartDrawer from './components/CartDrawer'
 import CheckoutModal from './components/CheckoutModal'
 import ReservationTimer from './components/ReservationTimer'
+
 
 export const metadata = {
   title: 'tenova10 — Shop 10/10 Products',
@@ -26,12 +27,7 @@ export default function RootLayout({ children }) {
       <body>
         <CartProvider>
           <Script src="https://js.paystack.co/v1/inline.js" strategy="lazyOnload" />
-          <div className="site-frame">
-            <Navbar />
-            <div className="site-content-pad">
-              {children}
-            </div>
-          </div>
+          <AppShell>{children}</AppShell>
           <CartDrawer />
           <CheckoutModal />
           <ReservationTimer />

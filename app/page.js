@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useCart } from './context/CartContext'
 import ProductCard from './components/ProductCard'
@@ -16,6 +17,12 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true)
   const [cat, setCat] = useState('all')
   const [onSaleOnly, setOnSaleOnly] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const urlCat = searchParams.get('cat')
+    setCat(urlCat || 'all')
+  }, [searchParams])
 
   useEffect(() => {
     const load = async () => {
@@ -67,12 +74,11 @@ export default function ShopPage() {
       <HeroBannerCarousel />
 
       {/* ── TRUST STRIP ──────────────────────────── */}
-      <div className="trust-strip" style={{ background: 'white', borderBottom: '1px solid #eef0f5', display: 'flex', flexWrap: 'wrap' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', justifyContent: 'center', gap: 'inherit', flexWrap: 'wrap', width: '100%' }}>
-          {[['🛡️', '100% Authentic'], ['🚚', 'Fast Delivery'], ['⭐', '4.8 Avg Rating'], ['😊', '500+ Customers']].map(([icon, label]) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-              <span style={{ fontSize: 16 }}>{icon}</span>
-              <span style={{ fontWeight: 500, color: DARK }}>{label}</span>
+      <div className="trust-strip" style={{ background: 'transparent' }}>
+        <div className="trust-strip-inner">
+          {['100% Authentic', 'Fast Delivery', '500+ Customers'].map(label => (
+            <div className="trust-item" key={label}>
+              <span className="trust-item-label" style={{ color: DARK }}>{label}</span>
             </div>
           ))}
         </div>

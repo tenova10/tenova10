@@ -1,23 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCart } from '../context/CartContext'
 import { DARK, fmt } from '@/lib/constants'
 
-export default function Navbar() {
+export default function Navbar({ docked }) {
   const { cartCount, cartTotal, cartOpen, setCartOpen, searchQ, setSearchQ } = useCart()
   const pathname = usePathname()
   const router = useRouter()
-  const [docked, setDocked] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setDocked(window.scrollY > 8)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
 
   const handleSearchChange = (value) => {
     setSearchQ(value)
@@ -39,16 +30,22 @@ export default function Navbar() {
             className="search-input"
             value={searchQ}
             onChange={e => handleSearchChange(e.target.value)}
-            placeholder="Search — totally OK!"
+            placeholder="Search — typos are totally OK!"
           />
         </div>
+
+        <Link href="/order-lookup" className="navbar-icon-btn" aria-label="Track your order" title="Track your order">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+          </svg>
+          <span className="navbar-icon-label">Track Order</span>
+        </Link>
 
         <button
           onClick={() => setCartOpen(v => !v)}
           className={`cart-btn-outline navbar-cart ${cartOpen ? 'cart-btn-active' : ''}`}
         >
-          {/* <span className="cart-btn-icon">🛍️</span> */}
-
           <span className="cart-btn-icon" style={{ display: 'flex' }}>
             <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="9" cy="21" r="1"></circle>
@@ -56,8 +53,6 @@ export default function Navbar() {
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
             </svg>
           </span>
-
-          
           {cartCount > 0 && <span className="cart-badge-circle">{cartCount}</span>}
           <span className="cart-btn-price">{fmt(cartTotal)}</span>
         </button>

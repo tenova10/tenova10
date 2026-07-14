@@ -54,6 +54,7 @@ export default function AdminPage() {
   const [uploading, setUploading]   = useState(false)
   const [toast, setToast]           = useState(null)
   const [stats, setStats]           = useState({ total: 0, paid: 0, revenue: 0, lowStock: 0 })
+  const [orderSearch, setOrderSearch] = useState('')
   const fileRef = useRef()
 
   /* ── Auth: restore session on load (real Supabase session first, legacy cookie flag second) ── */
@@ -368,6 +369,15 @@ export default function AdminPage() {
     }
   }
 
+  const filteredOrders = orders.filter(o => {
+    const q = orderSearch.trim().toLowerCase()
+    if (!q) return true
+    return (
+      o.customer_email?.toLowerCase().includes(q) ||
+      o.reference?.toLowerCase().includes(q)
+    )
+  })
+
   if (checkingSession) {
     return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',color:'#8892a0'}}>Loading...</div>
   }
@@ -447,9 +457,18 @@ export default function AdminPage() {
 
         {tab === 'orders' && (
           <div>
-            <h2 style={{fontSize:16,fontWeight:700,color:DARK,marginBottom:18}}>Orders ({orders.length})</h2>
+            <h2 style={{fontSize:16,fontWeight:700,color:DARK,marginBottom:18}}>
+              Orders ({filteredOrders.length}{filteredOrders.length !== orders.length ? ` of ${orders.length}` : ''})
+            </h2>
+            <input
+              className="form-input"
+              value={orderSearch}
+              onChange={e => setOrderSearch(e.target.value)}
+              placeholder="Search by customer email or order reference..."
+              style={{ marginBottom: 16 }}
+            />
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
-              {orders.map(o => (
+              {filteredOrders.map(o => (
                 <div key={o.id} style={{background:'white',borderRadius:14,padding:'18px 20px',border:'0.5px solid #eef0f5'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:12,marginBottom:10,flexWrap:'wrap'}}>
                     <div>
@@ -484,6 +503,11 @@ export default function AdminPage() {
               {orders.length === 0 && (
                 <div style={{textAlign:'center',padding:'56px 0',color:'#8892a0',fontSize:14}}>
                   No orders yet. They'll appear here once customers start buying.
+                </div>
+              )}
+              {orders.length > 0 && filteredOrders.length === 0 && (
+                <div style={{textAlign:'center',padding:'56px 0',color:'#8892a0',fontSize:14}}>
+                  No orders match "{orderSearch}".
                 </div>
               )}
             </div>
