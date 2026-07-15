@@ -64,10 +64,10 @@ function ShopPageContent() {
   )
   const featuredProducts = products.filter(p => p.featured && p.is_active)
 
-  const dynamicCats = [
-    { k: 'all', l: 'All Products' },
-    ...Object.values(categoriesById).map(c => ({ k: c.id, l: `${c.emoji} ${c.label}` })),
-  ]
+  // const dynamicCats = [
+  //   { k: 'all', l: 'All Products' },
+  //   ...Object.values(categoriesById).map(c => ({ k: c.id, l: `${c.emoji} ${c.label}` })),
+  // ]
 
   return (
     <>
@@ -102,16 +102,6 @@ function ShopPageContent() {
       <div id="products" className="products-section">
         <div className="products-narrow-wrap">
         <div className="category-pills-row">
-          {dynamicCats.map(c => (
-            <button
-              key={c.k}
-              onClick={() => setCat(c.k)}
-              className={`cat-pill ${cat === c.k ? 'active' : ''}`}
-              style={{ flexShrink: 0 }}
-            >
-              {c.l}
-            </button>
-          ))}
           <button
             onClick={() => setOnSaleOnly(v => !v)}
             className={`cat-pill ${onSaleOnly ? 'active' : ''}`}
