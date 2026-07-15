@@ -1,7 +1,6 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useCart } from './context/CartContext'
 import ProductCard from './components/ProductCard'
@@ -10,19 +9,12 @@ import HeroBannerCarousel from './components/HeroBannerCarousel'
 import { fuzzy } from '@/lib/search'
 import { ORANGE, DARK, EMOJI, fmt } from '@/lib/constants'
 
-function ShopPageContent() {
-  const { showToast, searchQ, categoriesById } = useCart()
+export default function ShopPage() {
+  const { showToast, searchQ, categoriesById, cat, setCat } = useCart()
 
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [cat, setCat] = useState('all')
   const [onSaleOnly, setOnSaleOnly] = useState(false)
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    const urlCat = searchParams.get('cat')
-    setCat(urlCat || 'all')
-  }, [searchParams])
 
   useEffect(() => {
     const load = async () => {
@@ -57,17 +49,14 @@ function ShopPageContent() {
     return () => supabase.removeChannel(channel)
   }, [showToast])
 
+  const isSearching = searchQ.trim().length > 0
+
   const filtered = products.filter(p =>
-    (cat === 'all' || p.category === cat) &&
+    (isSearching || cat === 'all' || p.category === cat) &&
     (!onSaleOnly || p.on_sale) &&
     fuzzy(p.name, p.description, searchQ)
   )
   const featuredProducts = products.filter(p => p.featured && p.is_active)
-
-  // const dynamicCats = [
-  //   { k: 'all', l: 'All Products' },
-  //   ...Object.values(categoriesById).map(c => ({ k: c.id, l: `${c.emoji} ${c.label}` })),
-  // ]
 
   return (
     <>
@@ -156,13 +145,5 @@ function ShopPageContent() {
         </div>
       </footer>
     </>
-  )
-}
-
-export default function ShopPage() {
-  return (
-    <Suspense fallback={null}>
-      <ShopPageContent />
-    </Suspense>
   )
 }

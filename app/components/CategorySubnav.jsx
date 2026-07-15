@@ -7,7 +7,7 @@ import { useCart } from '../context/CartContext'
 const MAX_VISIBLE = 6
 
 export default function CategorySubnav({ docked }) {
-  const { categoriesById } = useCart()
+  const { categoriesById, cat, setCat } = useCart()
   const [panelOpen, setPanelOpen] = useState(false)
   const panelRef = useRef(null)
   const pathname = usePathname()
@@ -28,13 +28,19 @@ export default function CategorySubnav({ docked }) {
     setPanelOpen(v => !v)
   }
 
+  const scrollToProducts = () => {
+    document.getElementById('products')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const goToCategory = (catId) => {
     setPanelOpen(false)
-    router.push(catId === 'all' ? '/' : `/?cat=${catId}`)
+    setCat(catId)
+
     if (pathname === '/') {
-      setTimeout(() => {
-        document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })
-      }, 50)
+      scrollToProducts()
+    } else {
+      router.push('/')
+      setTimeout(scrollToProducts, 300)
     }
   }
 
@@ -63,7 +69,7 @@ export default function CategorySubnav({ docked }) {
       </div>
 
       <div className="category-subnav-scroll">
-        <button type="button" className="category-subnav-link" onClick={() => goToCategory('all')}>
+        <button type="button" className={`category-subnav-link ${cat === 'all' ? 'active' : ''}`} onClick={() => goToCategory('all')}>
           <span className="category-subnav-icon">
             <svg width="16" height="16" viewBox="0 0 16 16">
               <rect x="0" y="0" width="6" height="6" rx="1.5" />
@@ -76,7 +82,7 @@ export default function CategorySubnav({ docked }) {
         </button>
 
         {visibleCategories.map(c => (
-          <button key={c.id} type="button" className="category-subnav-link" onClick={() => goToCategory(c.id)}>
+          <button key={c.id} type="button" className={`category-subnav-link ${cat === c.id ? 'active' : ''}`} onClick={() => goToCategory(c.id)}>
             <span>{c.emoji}</span> {c.label}
           </button>
         ))}

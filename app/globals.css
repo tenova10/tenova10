@@ -1077,6 +1077,7 @@ body {
 
 .products-section {
   padding: 30px 20px 56px;
+  scroll-margin-top: 140px;
 }
 @media (max-width: 480px) {
   .products-section { padding: 20px 14px 40px; }

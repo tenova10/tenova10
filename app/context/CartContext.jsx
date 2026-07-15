@@ -36,8 +36,9 @@ export function CartProvider({ children }) {
   const [variantStockById, setVariantStockById] = useState({})
   const [categoriesById, setCategoriesById] = useState({})
 
-  /* ── Search (shared so Navbar can host the input on every page) ── */
+  /* ── Search + category (shared so Navbar/Subnav can control them from any page) ── */
   const [searchQ, setSearchQ] = useState('')
+  const [cat, setCat] = useState('all')
 
   /* ── Checkout / cart-panel UI state (orchestration only — API calls live in checkoutService) ── */
   const [cartOpen, setCartOpen]                       = useState(false)
@@ -437,8 +438,9 @@ export function CartProvider({ children }) {
     // categories
     categoriesById,
 
-    // search
+    // search + category
     searchQ, setSearchQ,
+    cat, setCat,
 
     // cart panel
     cartOpen, setCartOpen,
